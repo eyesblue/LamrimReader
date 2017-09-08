@@ -1,0 +1,228 @@
+[
+    {
+        "outputFile": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 51,
+                    "endOffset": 102
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 4,
+                        "startOffset": 55,
+                        "endColumn": 51,
+                        "endOffset": 102
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 107,
+                    "endColumn": 53,
+                    "endOffset": 156
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 107,
+                        "endColumn": 53,
+                        "endOffset": 156
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 161,
+                    "endColumn": 30,
+                    "endOffset": 187
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 161,
+                        "endColumn": 30,
+                        "endOffset": 187
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 192,
+                    "endColumn": 42,
+                    "endOffset": 230
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 192,
+                        "endColumn": 42,
+                        "endOffset": 230
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 235,
+                    "endLine": 9,
+                    "endColumn": 9,
+                    "endOffset": 437
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 235,
+                        "endLine": 9,
+                        "endColumn": 9,
+                        "endOffset": 437
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 442,
+                    "endLine": 13,
+                    "endColumn": 9,
+                    "endOffset": 677
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 442,
+                        "endLine": 13,
+                        "endColumn": 9,
+                        "endOffset": 677
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 14,
+                    "startColumn": 4,
+                    "startOffset": 682,
+                    "endLine": 17,
+                    "endColumn": 9,
+                    "endOffset": 918
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 14,
+                        "startColumn": 4,
+                        "startOffset": 682,
+                        "endLine": 17,
+                        "endColumn": 9,
+                        "endOffset": 918
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 18,
+                    "startColumn": 4,
+                    "startOffset": 923,
+                    "endColumn": 40,
+                    "endOffset": 959
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 923,
+                        "endColumn": 40,
+                        "endOffset": 959
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 19,
+                    "startColumn": 4,
+                    "startOffset": 964,
+                    "endLine": 22,
+                    "endColumn": 9,
+                    "endOffset": 1164
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 19,
+                        "startColumn": 4,
+                        "startOffset": 964,
+                        "endLine": 22,
+                        "endColumn": 9,
+                        "endOffset": 1164
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 23,
+                    "startColumn": 4,
+                    "startOffset": 1169,
+                    "endLine": 26,
+                    "endColumn": 9,
+                    "endOffset": 1402
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 23,
+                        "startColumn": 4,
+                        "startOffset": 1169,
+                        "endLine": 26,
+                        "endColumn": 9,
+                        "endOffset": 1402
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 27,
+                    "startColumn": 4,
+                    "startOffset": 1407,
+                    "endLine": 30,
+                    "endColumn": 9,
+                    "endOffset": 1641
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\newQuickAction\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 27,
+                        "startColumn": 4,
+                        "startOffset": 1407,
+                        "endLine": 30,
+                        "endColumn": 9,
+                        "endOffset": 1641
+                    }
+                }
+            }
+        ]
+    }
+]

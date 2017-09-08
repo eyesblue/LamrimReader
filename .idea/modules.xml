@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/LamrimReader.iml" filepath="$PROJECT_DIR$/LamrimReader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/colorPickerView/colorPickerView.iml" filepath="$PROJECT_DIR$/colorPickerView/colorPickerView.iml" />
+      <module fileurl="file://$PROJECT_DIR$/newQuickAction/newQuickAction.iml" filepath="$PROJECT_DIR$/newQuickAction/newQuickAction.iml" />
+      <module fileurl="file://$PROJECT_DIR$/robotoCalendarLibrary/robotoCalendarLibrary.iml" filepath="$PROJECT_DIR$/robotoCalendarLibrary/robotoCalendarLibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wVersionManager/wVersionManager.iml" filepath="$PROJECT_DIR$/wVersionManager/wVersionManager.iml" />
+    </modules>
+  </component>
+</project>

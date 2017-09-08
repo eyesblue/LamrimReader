@@ -1,0 +1,524 @@
+[
+    {
+        "outputFile": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 39,
+                    "endOffset": 90
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 4,
+                        "startOffset": 55,
+                        "endColumn": 39,
+                        "endOffset": 90
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 95,
+                    "endColumn": 38,
+                    "endOffset": 129
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 95,
+                        "endColumn": 38,
+                        "endOffset": 129
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 4,
+                    "startColumn": 4,
+                    "startOffset": 134,
+                    "endColumn": 56,
+                    "endOffset": 186
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 134,
+                        "endColumn": 56,
+                        "endOffset": 186
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 5,
+                    "startColumn": 4,
+                    "startOffset": 191,
+                    "endColumn": 49,
+                    "endOffset": 236
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 191,
+                        "endColumn": 49,
+                        "endOffset": 236
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 241,
+                    "endColumn": 48,
+                    "endOffset": 285
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 241,
+                        "endColumn": 48,
+                        "endOffset": 285
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 290,
+                    "endColumn": 39,
+                    "endOffset": 325
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 290,
+                        "endColumn": 39,
+                        "endOffset": 325
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 330,
+                    "endColumn": 49,
+                    "endOffset": 375
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 330,
+                        "endColumn": 49,
+                        "endOffset": 375
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 380,
+                    "endColumn": 37,
+                    "endOffset": 413
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 380,
+                        "endColumn": 37,
+                        "endOffset": 413
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 418,
+                    "endColumn": 40,
+                    "endOffset": 454
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 418,
+                        "endColumn": 40,
+                        "endOffset": 454
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 37,
+                    "startColumn": 4,
+                    "startOffset": 2236,
+                    "endColumn": 52,
+                    "endOffset": 2284
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 37,
+                        "startColumn": 4,
+                        "startOffset": 2236,
+                        "endColumn": 52,
+                        "endOffset": 2284
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 38,
+                    "startColumn": 4,
+                    "startOffset": 2289,
+                    "endColumn": 48,
+                    "endOffset": 2333
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 38,
+                        "startColumn": 4,
+                        "startOffset": 2289,
+                        "endColumn": 48,
+                        "endOffset": 2333
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 39,
+                    "startColumn": 4,
+                    "startOffset": 2338,
+                    "endColumn": 55,
+                    "endOffset": 2389
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 39,
+                        "startColumn": 4,
+                        "startOffset": 2338,
+                        "endColumn": 55,
+                        "endOffset": 2389
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 40,
+                    "startColumn": 4,
+                    "startOffset": 2394,
+                    "endColumn": 49,
+                    "endOffset": 2439
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 40,
+                        "startColumn": 4,
+                        "startOffset": 2394,
+                        "endColumn": 49,
+                        "endOffset": 2439
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 41,
+                    "startColumn": 4,
+                    "startOffset": 2444,
+                    "endColumn": 51,
+                    "endOffset": 2491
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 41,
+                        "startColumn": 4,
+                        "startOffset": 2444,
+                        "endColumn": 51,
+                        "endOffset": 2491
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 42,
+                    "startColumn": 4,
+                    "startOffset": 2496,
+                    "endColumn": 49,
+                    "endOffset": 2541
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 42,
+                        "startColumn": 4,
+                        "startOffset": 2496,
+                        "endColumn": 49,
+                        "endOffset": 2541
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 43,
+                    "startColumn": 4,
+                    "startOffset": 2546,
+                    "endColumn": 49,
+                    "endOffset": 2591
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 43,
+                        "startColumn": 4,
+                        "startOffset": 2546,
+                        "endColumn": 49,
+                        "endOffset": 2591
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 44,
+                    "startColumn": 4,
+                    "startOffset": 2596,
+                    "endColumn": 53,
+                    "endOffset": 2645
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 44,
+                        "startColumn": 4,
+                        "startOffset": 2596,
+                        "endColumn": 53,
+                        "endOffset": 2645
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 45,
+                    "startColumn": 4,
+                    "startOffset": 2650,
+                    "endColumn": 49,
+                    "endOffset": 2695
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 45,
+                        "startColumn": 4,
+                        "startOffset": 2650,
+                        "endColumn": 49,
+                        "endOffset": 2695
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 46,
+                    "startColumn": 4,
+                    "startOffset": 2700,
+                    "endColumn": 48,
+                    "endOffset": 2744
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 46,
+                        "startColumn": 4,
+                        "startOffset": 2700,
+                        "endColumn": 48,
+                        "endOffset": 2744
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 47,
+                    "startColumn": 4,
+                    "startOffset": 2749,
+                    "endColumn": 51,
+                    "endOffset": 2796
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 47,
+                        "startColumn": 4,
+                        "startOffset": 2749,
+                        "endColumn": 51,
+                        "endOffset": 2796
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 48,
+                    "startColumn": 4,
+                    "startOffset": 2801,
+                    "endColumn": 47,
+                    "endOffset": 2844
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 48,
+                        "startColumn": 4,
+                        "startOffset": 2801,
+                        "endColumn": 47,
+                        "endOffset": 2844
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 49,
+                    "startColumn": 4,
+                    "startOffset": 2849,
+                    "endColumn": 71,
+                    "endOffset": 2916
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 49,
+                        "startColumn": 4,
+                        "startOffset": 2849,
+                        "endColumn": 71,
+                        "endOffset": 2916
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 50,
+                    "startColumn": 4,
+                    "startOffset": 2921,
+                    "endColumn": 55,
+                    "endOffset": 2972
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 50,
+                        "startColumn": 4,
+                        "startOffset": 2921,
+                        "endColumn": 55,
+                        "endOffset": 2972
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 51,
+                    "startColumn": 4,
+                    "startOffset": 2977,
+                    "endColumn": 56,
+                    "endOffset": 3029
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 51,
+                        "startColumn": 4,
+                        "startOffset": 2977,
+                        "endColumn": 56,
+                        "endOffset": 3029
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 52,
+                    "startColumn": 4,
+                    "startOffset": 3034,
+                    "endColumn": 55,
+                    "endOffset": 3085
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 52,
+                        "startColumn": 4,
+                        "startOffset": 3034,
+                        "endColumn": 55,
+                        "endOffset": 3085
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 53,
+                    "startColumn": 4,
+                    "startOffset": 3090,
+                    "endLine": 60,
+                    "endColumn": 12,
+                    "endOffset": 3377
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 53,
+                        "startColumn": 4,
+                        "startOffset": 3090,
+                        "endLine": 60,
+                        "endColumn": 12,
+                        "endOffset": 3377
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 61,
+                    "startColumn": 4,
+                    "startOffset": 3382,
+                    "endLine": 63,
+                    "endColumn": 12,
+                    "endOffset": 3537
+                },
+                "from": {
+                    "file": "C:\\Users\\eyesblue\\Dropbox\\Android_projects\\LamrimReader\\robotoCalendarLibrary\\build\\intermediates\\bundles\\debug\\res\\values\\values.xml",
+                    "position": {
+                        "startLine": 61,
+                        "startColumn": 4,
+                        "startOffset": 3382,
+                        "endLine": 63,
+                        "endColumn": 12,
+                        "endOffset": 3537
+                    }
+                }
+            }
+        ]
+    }
+]
