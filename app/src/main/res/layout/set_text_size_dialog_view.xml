@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
-            android:text="字型選擇  "
+            android:text="@string/selectFont"
             android:textAlignment="textStart"
             android:textColor="@android:color/white"
             android:textSize="22sp" />
@@ -35,7 +35,7 @@
                 android:id="@+id/defFont"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="廣論"
+                android:text="@string/setupTextSizeSample"
                 android:textSize="36sp" />
 
 
@@ -43,7 +43,7 @@
                 android:id="@+id/bktFont"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="廣論"
+                android:text="@string/setupTextSizeSample"
                 android:textSize="36sp" />
 
         </RadioGroup>
@@ -62,7 +62,7 @@
             android:id="@+id/timeRegion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="論文"
+            android:text="@string/bookContent"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <SeekBar
@@ -82,7 +82,7 @@
             android:id="@+id/info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="字幕"
+            android:text="@string/subtitleFontSize"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <SeekBar

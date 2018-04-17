@@ -33,7 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:src="@drawable/volume" />
+        android:src="@drawable/ic_volume" />
 
     <SeekBar
         android:id="@+id/volumeController"
@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:background="@drawable/btn_bg_press"
-        android:src="@drawable/font_size"
+        android:src="@drawable/ic_font_size"
         android:padding="6dp" />
 
     <ImageButton
@@ -59,14 +59,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/btn_bg_press"
-        android:src="@drawable/search"
+        android:src="@drawable/ic_search"
         android:padding="6dp" />
 
     <ImageButton
         android:id="@+id/themeSwitcher"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/switch_theme"
+        android:src="@drawable/ic_switch_theme"
         android:background="@drawable/btn_bg_press"
         android:layout_weight="1"
         android:padding="6dp" />
@@ -75,9 +75,9 @@
         android:id="@+id/playBgm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/play_bgm"
-        android:background="@drawable/btn_bg_press"
         android:layout_weight="1"
-        android:padding="6dp" />
+        android:background="@drawable/btn_bg_press"
+        android:padding="6dp"
+        android:src="@drawable/ic_play_bgm" />
 
 </LinearLayout>

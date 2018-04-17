@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:clickable="false"
-            android:src="@drawable/reload_last_state" />
+            android:src="@drawable/ic_reload_last_state" />
 
         <TextView
             android:id="@+id/desc"
@@ -49,7 +49,7 @@
             android:id="@+id/imageButton"
             android:layout_gravity="center_vertical"
             android:clickable="false"
-            android:src="@drawable/update" />
+            android:src="@drawable/ic_update" />
 
         <TextView
             android:layout_width="wrap_content"

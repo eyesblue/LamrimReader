@@ -24,12 +24,6 @@
                 android:gravity="center"
                 android:orientation="vertical" >
 
-                <ImageView
-                    android:id="@+id/bookIcon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/storage_external" />
-
                 <TextView
                     android:id="@+id/textView"
                     android:layout_width="wrap_content"
@@ -45,12 +39,6 @@
                 android:layout_marginLeft="20dp"
                 android:gravity="center"
                 android:orientation="vertical" >
-
-                <ImageView
-                    android:id="@+id/rightBoundIcon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/storage_internal" />
 
                 <TextView
                     android:id="@+id/endTimeTitle"
@@ -238,7 +226,7 @@
                 android:id="@+id/btnMoveAllToExt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/move_here"
+                android:drawableLeft="@drawable/ic_move_here"
                 android:enabled="false"
                 android:text="移動至此" />
 
@@ -247,16 +235,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="20dp"
-                android:drawableLeft="@drawable/delete"
-                android:enabled="false"
-                android:text="刪除" />
+                android:drawableLeft="@drawable/ic_delete"
+                android:enabled="false" />
 
             <Button
                 android:id="@+id/btnMoveAllToInt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:drawableLeft="@drawable/move_here"
+                android:layout_marginLeft="10dp"
+                android:drawableLeft="@drawable/ic_move_here"
                 android:enabled="false"
                 android:text="移動至此" />
 
@@ -264,9 +251,8 @@
                 android:id="@+id/btnDelIntFiles"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/delete"
-                android:enabled="false"
-                android:text="刪除" />
+                android:drawableLeft="@drawable/ic_delete"
+                android:enabled="false" />
         </LinearLayout>
 
         <LinearLayout
@@ -334,14 +320,14 @@
                 android:layout_height="wrap_content"
                 android:paddingLeft="2dp"
                 android:paddingRight="2dp"
-                android:src="@drawable/folder" />
+                android:src="@drawable/ic_folder" />
         </LinearLayout>
 
         <Button
             android:id="@+id/moveToUserSpyDirBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/move_here"
+            android:drawableLeft="@drawable/ic_move_here"
             android:text="移動[外部空間]與[內部空間]的音檔到此指定目錄" />
 
         <LinearLayout

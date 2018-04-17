@@ -66,7 +66,7 @@
             android:layout_alignParentTop="true"
             android:adjustViewBounds="true"
             android:background="#00000000"
-            android:src="@drawable/region" />
+            android:src="@drawable/ic_region" />
 
         <ImageButton
             android:id="@+id/pinBtn"

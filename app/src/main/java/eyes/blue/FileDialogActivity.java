@@ -10,7 +10,6 @@ import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,7 +20,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * Activity para escolha de arquivos/diretorios.
@@ -237,11 +235,11 @@ public class FileDialogActivity extends ListActivity {
 		if (!currentPath.equals(ROOT)) {
 
 			item.add(ROOT);
-			addItem(ROOT, R.drawable.folder);
+			addItem(ROOT, R.drawable.ic_folder);
 			path.add(ROOT);
 
 			item.add("../");
-			addItem("../", R.drawable.folder);
+			addItem("../", R.drawable.ic_folder);
 			path.add(f.getParent());
 			parentPath = f.getParent();
 
@@ -289,11 +287,11 @@ public class FileDialogActivity extends ListActivity {
 				ITEM_KEY, ITEM_IMAGE }, new int[] { R.id.fdrowtext, R.id.fdrowimage });
 
 		for (String dir : dirsMap.tailMap("").values()) {
-			addItem(dir, R.drawable.folder);
+			addItem(dir, R.drawable.ic_folder);
 		}
 
 		for (String file : filesMap.tailMap("").values()) {
-			addItem(file, R.drawable.file);
+			addItem(file, R.drawable.ic_file);
 		}
 
 		fileList.notifyDataSetChanged();

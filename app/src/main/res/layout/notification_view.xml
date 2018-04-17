@@ -50,6 +50,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="停止下載" />
+        android:text="@string/dlgStopDownload" />
 
 </LinearLayout>

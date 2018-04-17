@@ -129,8 +129,8 @@ public class StorageManageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = getConfirmDialog();
-                builder.setTitle("移動檔案");
-                builder.setMessage("您確定要移動檔案嗎？");
+                builder.setTitle(getString(R.string.dlgMoveFile));
+                builder.setMessage(getString(R.string.dlgSureMoveFile));
                 builder.setPositiveButton(getString(R.string.dlgOk), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -150,8 +150,8 @@ public class StorageManageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = getConfirmDialog();
-                builder.setTitle("移動檔案");
-                builder.setMessage("您確定要移動檔案嗎？");
+                builder.setTitle(getString(R.string.dlgMoveFile));
+                builder.setMessage(getString(R.string.dlgSureMoveFile));
                 builder.setPositiveButton(getString(R.string.dlgOk), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -163,13 +163,7 @@ public class StorageManageActivity extends AppCompatActivity {
 
                             @Override
                             public void copyFail(final File from, final File to) {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Util.showErrorPopupWindow(StorageManageActivity.this, findViewById(R.id.smRootView), "搬移檔案時發生錯誤: 來源 " + from.getAbsolutePath() + ", 目的地:  " + to.getAbsolutePath());
-                                    }
-                                });
-
+                                Util.showErrorToast(StorageManageActivity.this, String.format(getString(R.string.errMoveFile),from.getAbsolutePath(), to.getAbsolutePath()));
                             }
                         });
                     }
@@ -182,14 +176,14 @@ public class StorageManageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = getConfirmDialog();
-                builder.setTitle(String.format(getString(R.string.dlgDelWarnTitle), "檔案"));
-                builder.setMessage(String.format(getString(R.string.dlgDelWarnMsg), "檔案"));
+                builder.setTitle(getString(R.string.dlgDelFile));
+                builder.setMessage(String.format(getString(R.string.dlgDelWarnMsg), getString(R.string.file)));
                 builder.setPositiveButton(getString(R.string.dlgOk), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         final ProgressDialog pd = new ProgressDialog(StorageManageActivity.this);
-                        pd.setTitle("刪除檔案");
-                        pd.setMessage("刪除中，請稍候...");
+                        pd.setTitle(getString(R.string.dlgDelFile));
+                        pd.setMessage(getString(R.string.dlgDeling));
                         pd.show();
 
                         Thread t = new Thread(new Runnable() {
@@ -218,14 +212,14 @@ public class StorageManageActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = getConfirmDialog();
-                builder.setTitle(String.format(getString(R.string.dlgDelWarnTitle), "檔案"));
-                builder.setMessage(String.format(getString(R.string.dlgDelWarnMsg), "檔案"));
+                builder.setTitle(getString(R.string.dlgDelFile));
+                builder.setMessage(String.format(getString(R.string.dlgDelWarnMsg), getString(R.string.file)));
                 builder.setPositiveButton(getString(R.string.dlgOk), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         final ProgressDialog pd = new ProgressDialog(StorageManageActivity.this);
-                        pd.setTitle("刪除檔案");
-                        pd.setMessage("刪除中，請稍候...");
+                        pd.setTitle(getString(R.string.dlgDelFile));
+                        pd.setMessage(getString(R.string.dlgDeling));
                         pd.show();
 
                         Thread t = new Thread(new Runnable() {
@@ -272,7 +266,7 @@ public class StorageManageActivity extends AppCompatActivity {
                         File filePath = new File(path);
                         filePath.mkdirs();
                         if (!filePath.exists() || !filePath.isDirectory() || !filePath.canWrite()) {
-                            Util.showErrorPopupWindow(StorageManageActivity.this, "使用者指定目錄錯誤或無寫入權限，無法移動檔案。");
+                            Util.showErrorToast(StorageManageActivity.this, getString(R.string.errWriteFile));
                             btnMoveToUserSpy.setEnabled(true);
                             return;
                         }
@@ -298,7 +292,7 @@ public class StorageManageActivity extends AppCompatActivity {
                         editor.commit();
 
                         //Util.showInfoPopupWindow(StorageManageActivity.this, "背景移動中，請檢視通知列以瞭解進度，移動過程中請勿執行其他操作。");
-                        BaseDialogs.showSimpleMsgDialog(StorageManageActivity.this, "檔案移動", "背景移動中，請檢視通知列以瞭解進度，移動過程中請勿執行其他操作。");
+                        BaseDialogs.showSimpleMsgDialog(StorageManageActivity.this, getString(R.string.dlgMoveFileTitle), getString(R.string.dlgMoveFileMsg));
                         startService(intent);
                         Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "MOVE_FILE_TO_SPECIFY_FOLDER_START_SERVICE");
                         refreshUsage();
@@ -309,7 +303,7 @@ public class StorageManageActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {dialog.dismiss();}};
 
-                BaseDialogs.showDialog(StorageManageActivity.this, "移動檔案", "移除廣論App時，系統不會刪除此處的檔案，您必須要自行刪除此指定目錄中的檔案，您確定要移動檔案嗎？", new DialogInterface.OnClickListener(){
+                BaseDialogs.showDialog(StorageManageActivity.this, getString(R.string.dlgMoveFileTitle), getString(R.string.msgNoDelWarring), new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (!isPermissionPass())
@@ -325,6 +319,7 @@ public class StorageManageActivity extends AppCompatActivity {
         btnChoicePath.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {// 此處僅需要讀取權限
+
                 // 把要執行的行為先封裝進 Runnable，若已經有寫入權限，則本地執行此Runnable，若無則要求寫入權限(isPermissionPass())，並在onRequestPermissionsResult中獲取權限後執行此Runnable。
                 PermissionGrantedJob = new Runnable() {
                     @Override
@@ -333,15 +328,15 @@ public class StorageManageActivity extends AppCompatActivity {
                         String ind;
                         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {  // Check is external storage mounted, no matter read only or read/write.
                             f = Environment.getExternalStorageDirectory();
-                            ind = "外部儲存區域";
+                            ind = getString(R.string.msgExternalStorage);
                         } else {
                             f = getFilesDir();
-                            ind = "內部儲存區域";
+                            ind = getString(R.string.msgInternalStorage);
                         }
 
                         Toast.makeText(StorageManageActivity.this, ind, Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(getBaseContext(), FileDialogActivity.class);
-                        intent.putExtra(FileDialogActivity.TITLE, "請選擇存放目錄");
+                        intent.putExtra(FileDialogActivity.TITLE, getString(R.string.msgSelectFolder));
                         intent.putExtra(FileDialogActivity.START_PATH, f.getAbsolutePath());
                         intent.putExtra(FileDialogActivity.CAN_SELECT_DIR, true);
                         startActivityForResult(intent, OPEN_DOCUMENT_TREE_UND_23);
@@ -384,8 +379,8 @@ public class StorageManageActivity extends AppCompatActivity {
                         if (!new File(path).canWrite())
                             BaseDialogs.showDialog(
                                     StorageManageActivity.this,
-                                    "無法自動補檔警告",
-                                    "您的所選擇的目錄廣論App沒有寫入權限，無法自動補檔，所有新的下載仍會寫入到預設的內部或外部儲存區域。",
+                                    getString(R.string.msgNoDownload),
+                                    getString(R.string.msgNoDownloadDesc),
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
@@ -453,7 +448,7 @@ public class StorageManageActivity extends AppCompatActivity {
     // 注意！此處只檢查到讀取權限，不包含檢查寫入權限
     private boolean isPathReadable(String pathStr) {
         if (pathStr.length() == 0) {
-            BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, "目錄錯誤", "使用者指定路徑不可為空！請重新選擇。");
+            BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, getString(R.string.msgFolderErr), getString(R.string.msgFolderErrDesc));
             String path = fsm.getLocateDir(FileSysManager.EXTERNAL, getResources().getInteger(R.integer.MEDIA_TYPE));
             if (path == null)
                 path = fsm.getLocateDir(FileSysManager.INTERNAL, getResources().getInteger(R.integer.MEDIA_TYPE));
@@ -463,7 +458,7 @@ public class StorageManageActivity extends AppCompatActivity {
         // Check is the path is FILE
         File f = new File(pathStr);
         if (f.isFile()) {
-            BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, "目錄錯誤", "您所指定的儲存位置為已存在的檔案而非目錄！請重新選擇。");
+            BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, getString(R.string.msgFolderErr), getString(R.string.msgNotFolder));
             return false;
         }
 
@@ -471,13 +466,13 @@ public class StorageManageActivity extends AppCompatActivity {
             if (f.mkdirs())
                 return true;
             else {
-                BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, "目錄錯誤", "您所指定的儲存目錄無法建立！請重新選擇。");
+                BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, getString(R.string.msgFolderErr), getString(R.string.msgCantCreateFolder));
                 return false;
             }
         }
 
         if (!f.canRead()) {
-            BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, "權限錯誤", "您所指定的儲存目錄無讀取權限！請重新選擇。");
+            BaseDialogs.showSimpleErrorDialog(StorageManageActivity.this, getString(R.string.msgPermErr), getString(R.string.msgPermErrDesc));
             return false;
         }
         return true;
@@ -622,22 +617,22 @@ public class StorageManageActivity extends AppCompatActivity {
 
     private void showAskMoveToSpecifyDialog(final String path) {
         final AlertDialog.Builder builder = getConfirmDialog();
-        builder.setTitle("移動檔案");
-        builder.setMessage("您要將所有的音檔移動到您所指定的位置嗎？");
+        builder.setTitle(getString(R.string.dlgMoveFile));
+        builder.setMessage(getString(R.string.dlgSureMoveAllAudioFile));
         builder.setPositiveButton(getString(R.string.dlgOk), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 final ProgressDialog pd = new ProgressDialog(StorageManageActivity.this);
                 pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                 pd.setCancelable(false);
-                pd.setTitle("檔案搬移");
-                pd.setMessage("搬移中，請稍候...");
+                pd.setTitle(getString(R.string.dlgMoveFile));
+                pd.setMessage(getString(R.string.msgFileMoving));
                 Thread t = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         File destFile = new File(path);
                         if (!fsm.moveAllMediaFileToUserSpecifyDir(destFile, pd) || !fsm.moveAllMediaFileToUserSpecifyDir(destFile, pd))
-                            Util.showErrorPopupWindow(StorageManageActivity.this, findViewById(R.id.smRootView), "檔案搬移失敗，請確認目的地空間是否足夠。");
+                            Util.showErrorToast(StorageManageActivity.this, getString(R.string.errStorageNotReady));
                         if (pd.isShowing()) pd.dismiss();
                         refreshUsage();
                     }
@@ -699,6 +694,4 @@ public class StorageManageActivity extends AppCompatActivity {
         });
         return builder;
     }
-
-
 }

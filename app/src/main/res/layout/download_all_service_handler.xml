@@ -10,7 +10,7 @@
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="您要停止下載嗎？"
+        android:text="@string/dlgSureStopDownload"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <LinearLayout
@@ -22,13 +22,13 @@
             android:id="@+id/noBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="取消" />
+            android:text="@string/dlgCancel" />
 
         <Button
             android:id="@+id/yesBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="確定" />
+            android:text="@string/dlgOk" />
 
     </LinearLayout>
 

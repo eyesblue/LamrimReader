@@ -1,12 +1,17 @@
 package eyes.blue;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -36,6 +41,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.support.annotation.IdRes;
@@ -77,6 +83,8 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -91,7 +99,6 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
-import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crash.FirebaseCrash;
@@ -102,6 +109,13 @@ import eyes.blue.modified.OnDoubleTapEventListener;
 
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener;
 import android.support.v7.app.ActionBar;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
 /**
  * 更新: $$Date: 2013-12-29 12:01:44 +0800 (Sun, 29 Dec 2013) $$ 作者: $$Author:
@@ -118,7 +132,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
     final static String funcInto = "Function Into";
     final static String funcLeave = "Function Leave";
 
-    final static int STORAGE_ACCESS_PERMISSION_REQUEST=1;
+    final static int STORAGE_ACCESS_PERMISSION_REQUEST = 1;
 
     final static int SPEECH_MENU_RESULT = 0;
     final static int THEORY_MENU_RESULT = 1;
@@ -135,7 +149,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
     static int textDefSize, textMinSize, textMaxSize;
     int subtitleViewRenderMode = SUBTITLE_MODE;
     int playMode = -1;
-    static int mediaIndex = -1, subtitleIndex=0;// subtitleIndex=目前正在播放中的字幕index
+    static int mediaIndex = -1, subtitleIndex = 0;// subtitleIndex=目前正在播放中的字幕index
     MediaPlayerController mpController;
     //	private PowerManager powerManager = null;
     private PowerManager.WakeLock wakeLock = null;
@@ -151,7 +165,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
     FileSysManager fsm = null;
     RelativeLayout rootLayout = null;
 
-    public static Typeface defFont = null, bktFont=null;
+    public static Typeface defFont = null, bktFont = null;
 
     // the 3 object is paste on the popupwindow object, it not initial at
     // startup.
@@ -163,7 +177,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
     PackageInfo pkgInfo = null;
 
     View actionBarControlPanel = null;
-    ImageView bookIcon = null;
+//    ImageView bookIcon = null;
     EditText jumpPage = null;
     SeekBar volumeController = null;
     ImageButton textSize = null;
@@ -194,16 +208,16 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
     // =================== For search view =====================
     AlertDialog searchDialog;
-    SubtitleSearch[] subtitleSearch = new SubtitleSearch[320];
+    SubtitleSearch[] subtitleSearch = new SubtitleSearch[320]; // The variable hold all subtitle for search.
+    TextView subtitleSearchHeaderTextView = null; // We can't get the reference back if the view add to listview, must hold it on global.
     ArrayList<SubtitleSearchIndex> subtitleSearchResult = new ArrayList<>();
-    SubtitleSearchAdapter subtitleSearchAdapter = null;
-    TextView subtitleSearchHeaderTextView = null;
-    ImageButton searchLastBtn = null, searchNextBtn = null;
-    EditText searchInput = null;
-    ListView subtitleSearchList = null;
-    boolean isSearchLamrim = true;
+    //SubtitleSearchAdapter subtitleSearchAdapter = null;
+    //ImageButton searchLastBtn = null, searchNextBtn = null;
+    //EditText searchInput = null;
+    //ListView subtitleSearchList = null;
+    //boolean isSearchLamrim = true;
     // =========================================================
-    long appStartTimeMs=-1;
+    long appStartTimeMs = -1;
     private FirebaseAnalytics mFirebaseAnalytics;
 
     @Override
@@ -214,7 +228,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
 ///		requestWindowFeature(Window.FEATURE_NO_TITLE);
 //		requestWindowFeature(com.actionbarsherlock.view.Window.FEATURE_ACTION_BAR_OVERLAY);
 
-        appStartTimeMs=System.currentTimeMillis();
+        appStartTimeMs = System.currentTimeMillis();
         setContentView(R.layout.main);
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
@@ -228,7 +242,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
         // setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         runtime = getSharedPreferences(getString(R.string.runtimeStateFile), 0);
-        runtimeEditor=runtime.edit();
+        runtimeEditor = runtime.edit();
 
         int mode = runtime.getInt(getString(R.string.playModeKey), -1);
         switch (mode) {
@@ -247,10 +261,10 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
         // Check new version
         versionManager = new WVersionManager(LamrimReaderActivity.this);
-        versionManager.setTitle("新版本已發佈");
-        versionManager.setUpdateNowLabel("立即更新");
-        versionManager.setRemindMeLaterLabel("稍後通知我");
-        versionManager.setIgnoreThisVersionLabel("忽略此版本");
+        versionManager.setTitle(getString(R.string.msgNewVerHasRes));
+        versionManager.setUpdateNowLabel(getString(R.string.msgUpdateNow));
+        versionManager.setRemindMeLaterLabel(getString(R.string.msgRemindMe));
+        versionManager.setIgnoreThisVersionLabel(getString(R.string.msgSkipTheVer));
         versionManager.setReminderTimer(10);
         versionManager.setVersionContentUrl(getString(R.string.versionCheckUrl)); // your update content url, see the response format below
         versionManager.checkVersion();
@@ -279,7 +293,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
         if (screenDim.x < screenDim.y)
             screenDim.set(screenDim.y, screenDim.x);
 
-        textDefSize = (int)((TextView) findViewById(R.id.subtitleView)).getTextSize();
+        textDefSize = (int) ((TextView) findViewById(R.id.subtitleView)).getTextSize();
         textMinSize = getResources().getInteger(R.integer.textMinSize);
         textMaxSize = getResources().getInteger(R.integer.textMaxSize);
         Log.d(logTag, "Get font size: max=" + textMaxSize + ", def=" + textDefSize + ", min=" + textMinSize);
@@ -301,9 +315,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
                 int maxHeight = (int) (rootLayout.getHeight() - modeSwBtn.getHeight());
 
                 // Fix the modeSwBtn over the view while show controller view.
-                if(mpController.getControllerView().isShown()){
-                    height = height-mpController.getControllerView().getHeight();
-                    maxHeight = maxHeight-mpController.getControllerView().getHeight();
+                if (mpController.getControllerView().isShown()) {
+                    height = height - mpController.getControllerView().getHeight();
+                    maxHeight = maxHeight - mpController.getControllerView().getHeight();
                 }
 
                 // int maxHeight=(int)
@@ -330,7 +344,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                     // subtitleView, but not set text every time.
                     if (subtitleViewRenderMode == SUBTITLE_MODE) {
                         if (mpController == null || !mpController.isSubtitleReady() || readingModeAllSubtitle == null) {
-                            Util.showErrorPopupWindow(LamrimReaderActivity.this, findViewById(R.id.rootLayout), getString(R.string.dlgHintLoadMediaBeforeSwitchToReadingMode));
+                            Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.dlgHintLoadMediaBeforeSwitchToReadingMode));
                             return true;
                         }
                         setSubtitleViewMode(READING_MODE);
@@ -348,16 +362,16 @@ public class LamrimReaderActivity extends AppCompatActivity {
         });
 
         // ============== Show info text view if enable =============
-        infoTextView=(TextView)findViewById(R.id.infoTextView);
-        boolean isShowInfoText=runtime.getBoolean(getString(R.string.isShowInfoTextViewKey),false);
-        if(isShowInfoText)infoTextView.setVisibility(View.VISIBLE);
+        infoTextView = (TextView) findViewById(R.id.infoTextView);
+        boolean isShowInfoText = runtime.getBoolean(getString(R.string.isShowInfoTextViewKey), false);
+        if (isShowInfoText) infoTextView.setVisibility(View.VISIBLE);
         else infoTextView.setVisibility(View.GONE);
 
         LayoutInflater factory = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
         actionBarControlPanel = factory.inflate(R.layout.lamrimreader_actionbar_control_panel, null);
-        bookIcon = (ImageView) actionBarControlPanel.findViewById(R.id.bookIcon);
+//        bookIcon = (ImageView) actionBarControlPanel.findViewById(R.id.bookIcon);
         /*
-		 * bookIcon.setOnClickListener(new View.OnClickListener(){
+         * bookIcon.setOnClickListener(new View.OnClickListener(){
 		 *
 		 * @Override public void onClick(View v) { if(mediaIndex<0 ||
 		 * mediaIndex>=SpeechData.name.length)return; final int
@@ -390,28 +404,27 @@ public class LamrimReaderActivity extends AppCompatActivity {
                 }
                 num = Integer.parseInt(jumpPage.getText().toString());
                 // =============== Check Special command =================
-                if(num==999){
-                    boolean isShowInfoText=!runtime.getBoolean(getString(R.string.isShowInfoTextViewKey),false);
-                    runtimeEditor.putBoolean(getString(R.string.isShowInfoTextViewKey),isShowInfoText);
+                if (num == 999) {
+                    boolean isShowInfoText = !runtime.getBoolean(getString(R.string.isShowInfoTextViewKey), false);
+                    runtimeEditor.putBoolean(getString(R.string.isShowInfoTextViewKey), isShowInfoText);
                     runtimeEditor.apply();
-                    if(isShowInfoText){
-                        Log.d(logTag,"Enable information text view");
+                    if (isShowInfoText) {
+                        Log.d(logTag, "Enable information text view");
                         infoTextView.setVisibility(View.VISIBLE);
-                        Util.fireSelectEvent(mFirebaseAnalytics,logTag,Util.BUTTON_CLICK,"ENABLE_INFO_TEXT");
-                    }
-                    else {
-                        Log.d(logTag,"Disable information text view");
+                        Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "ENABLE_INFO_TEXT");
+                    } else {
+                        Log.d(logTag, "Disable information text view");
                         infoTextView.setVisibility(View.GONE);
-                        Util.fireSelectEvent(mFirebaseAnalytics,logTag,Util.BUTTON_CLICK,"DISABLE_INFO_TEXT");
+                        Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "DISABLE_INFO_TEXT");
                     }
                     runtimeEditor.putBoolean(getString(R.string.isShowInfoTextViewKey), isShowInfoText);
                     runtimeEditor.apply();
                     jumpPage.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            jumpPage.setText(""+(bookView.getFirstVisiblePosition()+1));
+                            jumpPage.setText("" + (bookView.getFirstVisiblePosition() + 1));
                         }
-                    },200);
+                    }, 200);
                     return true;
                 }
 
@@ -465,7 +478,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                 final int theoryTextSize = runtime.getInt(getString(R.string.bookFontSizeKey), textDefSize);
                 bookView.setTextSize(theoryTextSize);
                 bookView.setSelectionFromTop(bookPosition, bookShift);
-                Util.fireSelectEvent(mFirebaseAnalytics, getClass().getName(), Util.BUTTON_CLICK, "SWITCH_TO_" + ((isDark_Theme)?"DARK":"LIGHT"+"_THEME"));
+                Util.fireSelectEvent(mFirebaseAnalytics, getClass().getName(), Util.BUTTON_CLICK, "SWITCH_TO_" + ((isDark_Theme) ? "DARK" : "LIGHT" + "_THEME"));
             }
         });
 
@@ -473,62 +486,62 @@ public class LamrimReaderActivity extends AppCompatActivity {
         playBgm.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Util.fireSelectEvent(mFirebaseAnalytics,logTag,Util.BUTTON_CLICK,"PLAY_SPEECH_BACKGROUND");
+                Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "PLAY_SPEECH_BACKGROUND");
 
-                int position=-1;
-                if(mediaIndex<0 || mpController == null || !mpController.isPlayerReady() || (position=mpController.getCurrentPosition())<0){
-                    BaseDialogs.showSimpleErrorDialog(LamrimReaderActivity.this, "播放器狀態不明，無法判斷目前播放的音檔，請重新載入音檔。");
+                int position = -1;
+                if (mediaIndex < 0 || mpController == null || !mpController.isPlayerReady() || (position = mpController.getCurrentPosition()) < 0) {
+                    BaseDialogs.showSimpleErrorDialog(LamrimReaderActivity.this, getString(R.string.errUnknowPlayerState));
                     return;
                 }
 
-                BaseDialogs.showDialog(LamrimReaderActivity.this, "背景模式", "即將關閉廣論App並切換到背景播放模式，在此模式下您可以關閉銀幕聆聽，您確定嗎？\n\n目前播放位置："+SpeechData.getNameId(mediaIndex)+" - "+Util.getMsToHMS(position,"分","秒",false), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        saveRuntime();
-
-                        Intent intent = new Intent();
-                        intent.setAction(Intent.ACTION_VIEW);
-                        File file = fsm.getLocalMediaFile(mediaIndex);
-
-                        if (Build.VERSION.SDK_INT < 24)
-                            intent.setDataAndType(Uri.fromFile(file), "audio/*");
-                        else
-                            intent.setDataAndType(FileProvider.getUriForFile(LamrimReaderActivity.this, getApplicationContext().getPackageName() + ".provider", file), "audio/*"); // fix exposed beyond app through Intent.getData() @ 1.4.12
-
-                        if(intent.resolveActivity(getPackageManager()) != null)
-                            startActivity(intent);
-                        else{
-                            BaseDialogs.showDialog(LamrimReaderActivity.this,"無播放器錯誤","您的系統中沒有內建可以播放音樂的App，請自行安裝音樂播放器，按確定開啟商城安裝建議的播放器。",
-                                    new DialogInterface.OnClickListener(){
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int val){
-                                            final String appPackageName = getString(R.string.recommandMusicPlayerPkg); // getPackageName() from Context or Activity object
-                                            try {
-                                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-                                            } catch (android.content.ActivityNotFoundException anfe) {
-                                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
-                                            }
-                                        }
-                                    },
-                                    new DialogInterface.OnClickListener(){
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int val){
-                                            dialog.dismiss();
-                                        }
-                                    },
-                                    true);
-                        }
-
-                        if (wakeLock.isHeld()) wakeLock.release();
-                        finish();
-                    }
-                },
-                        new DialogInterface.OnClickListener(){
+                BaseDialogs.showDialog(LamrimReaderActivity.this, getString(R.string.dlgBgPlayMode), getString(R.string.msgBgPlayDesc) + SpeechData.getNameId(mediaIndex) + " - " + Util.getMsToHMS(position, "分", "秒", false), new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int val){
-                            dialog.dismiss();
-                        }
-                },true);
+                            public void onClick(DialogInterface dialog, int which) {
+                                saveRuntime();
+
+                                Intent intent = new Intent();
+                                intent.setAction(Intent.ACTION_VIEW);
+                                File file = fsm.getLocalMediaFile(mediaIndex);
+
+                                if (Build.VERSION.SDK_INT < 24)
+                                    intent.setDataAndType(Uri.fromFile(file), "audio/*");
+                                else
+                                    intent.setDataAndType(FileProvider.getUriForFile(LamrimReaderActivity.this, getApplicationContext().getPackageName() + ".provider", file), "audio/*"); // fix exposed beyond app through Intent.getData() @ 1.4.12
+
+                                if (intent.resolveActivity(getPackageManager()) != null)
+                                    startActivity(intent);
+                                else {
+                                    BaseDialogs.showDialog(LamrimReaderActivity.this, getString(R.string.errNoMediaPlayer), getString(R.string.msgInstallPlayerFirst),
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int val) {
+                                                    final String appPackageName = getString(R.string.recommandMusicPlayerPkg); // getPackageName() from Context or Activity object
+                                                    try {
+                                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                                                    } catch (android.content.ActivityNotFoundException anfe) {
+                                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                                                    }
+                                                }
+                                            },
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int val) {
+                                                    dialog.dismiss();
+                                                }
+                                            },
+                                            true);
+                                }
+
+                                if (wakeLock.isHeld()) wakeLock.release();
+                                finish();
+                            }
+                        },
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int val) {
+                                dialog.dismiss();
+                            }
+                        }, true);
 
             }
         });
@@ -597,7 +610,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
             createMpController();
 
         subtitleView = (TextView) findViewById(R.id.subtitleView);
-        subtitleView.setTypeface(Util.getFont(LamrimReaderActivity.this,runtime));
+        subtitleView.setTypeface(Util.getFont(LamrimReaderActivity.this, runtime));
 
         final GestureDetectorCompat subtitleViewGestureListener = new GestureDetectorCompat(
                 //getApplicationContext(), new SimpleOnGestureListener() {
@@ -611,7 +624,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
             public boolean onSingleTapConfirmed(MotionEvent e) {
                 Log.d(logTag, "SubtitleView been clicked, Show media plyaer control panel.");
                 if (mpController == null) {
-                    setSubtitleViewText("播放器已被系統回收，請重新載入。");
+                    setSubtitleViewText(getString(R.string.errPlayerRecycled));
                     createMpController();
                     return false;
                 }
@@ -694,13 +707,13 @@ public class LamrimReaderActivity extends AppCompatActivity {
             public boolean onScale(ScaleGestureDetector detector) {
                 float size = subtitleView.getTextSize() * detector.getScaleFactor();
 
-                if(size<=textMinSize && subtitleView.getTextSize()==textMinSize)
+                if (size <= textMinSize && subtitleView.getTextSize() == textMinSize)
                     return true;
-                else if( size >= textMaxSize && subtitleView.getTextSize()==textMaxSize)
+                else if (size >= textMaxSize && subtitleView.getTextSize() == textMaxSize)
                     return true;
 
-                if(size<textMinSize)size=textMinSize;
-                else if(size>textMaxSize)size=textMaxSize;
+                if (size < textMinSize) size = textMinSize;
+                else if (size > textMaxSize) size = textMaxSize;
 
                 // Log.d(getClass().getName(),"Get scale rate: "+detector.getScaleFactor()+", current Size: "+adapter.getTextSize()+", setSize: "+adapter.getTextSize()*detector.getScaleFactor());
                 subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
@@ -834,7 +847,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d(getClass().getName(), "Into onLongClickListener of render image.");
                 if (mpController == null) {
-                    setSubtitleViewText("播放器已被系統回收，請重新嘗試載入。");
+                    setSubtitleViewText(getString(R.string.errPlayerRecycled));
                     createMpController();
                     return;
                 }
@@ -848,19 +861,21 @@ public class LamrimReaderActivity extends AppCompatActivity {
         actionBar.setDisplayShowHomeEnabled(false);
         if (actionBar != null) actionBar.setSubtitle(appSubtitle);
 
-        int onCreateSpendTimeMs=(int)(System.currentTimeMillis()-appStartTimeMs);
-        Log.d(getClass().getName(), "=============== onCreate spend time: "+onCreateSpendTimeMs);
+        int onCreateSpendTimeMs = (int) (System.currentTimeMillis() - appStartTimeMs);
+        Log.d(getClass().getName(), "=============== onCreate spend time: " + onCreateSpendTimeMs);
         Util.fireTimming(LamrimReaderActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "INITIAL_TIME_OF_MAIN_ACTIVITY", onCreateSpendTimeMs);
-    } // End of onCreate()
+
+
+    }// ========================================== End of OnCreate() ============================================
 
     // For catch global event, acquire again if user action happen.
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
 //		Log.d(logTag,"Into dispatchTouchEvent() of activity.");
-            if (wakeLock.isHeld()) wakeLock.release();
-            if (!wakeLock.isHeld()) {
-                wakeLock.acquire(screenOnTime);
-            }
+        if (wakeLock.isHeld()) wakeLock.release();
+        if (!wakeLock.isHeld()) {
+            wakeLock.acquire(screenOnTime);
+        }
         return super.dispatchTouchEvent(ev);
     }
 
@@ -881,14 +896,16 @@ public class LamrimReaderActivity extends AppCompatActivity {
     }
 
     private void shareSegment(RegionRecord record) {
-        boolean isShareWithREST=getResources().getBoolean(R.bool.isShareWithREST);
-        if(isShareWithREST)shareSegmentRest(record.title, record.mediaStart, record.startTimeMs, record.mediaEnd, record.endTimeMs, record.theoryPageStart, record.theoryStartLine, record.theoryPageEnd, record.theoryEndLine);
-        else shareSegment(record.title, record.mediaStart, record.startTimeMs, record.mediaEnd, record.endTimeMs, record.theoryPageStart, record.theoryStartLine, record.theoryPageEnd, record.theoryEndLine);
+        boolean isShareWithREST = getResources().getBoolean(R.bool.isShareWithREST);
+        if (isShareWithREST)
+            shareSegmentRest(record.title, record.mediaStart, record.startTimeMs, record.mediaEnd, record.endTimeMs, record.theoryPageStart, record.theoryStartLine, record.theoryPageEnd, record.theoryEndLine);
+        else
+            shareSegment(record.title, record.mediaStart, record.startTimeMs, record.mediaEnd, record.endTimeMs, record.theoryPageStart, record.theoryStartLine, record.theoryPageEnd, record.theoryEndLine);
     }
 
     private void shareSegment(String title, int speechStartIndex, int speechStartMs, int speechEndIndex, int speechEndMs, int theoryPageStart, int theoryStartLine, int theoryPageEnd, int theoryEndLine) {
-        boolean isOutputSecondLink=false;
-        String firebase="https://xe74n.app.goo.gl/?apn=eyes.blue&afl=https://lamrimreader-cmd.eyes-blue.com/play&link=";
+        boolean isOutputSecondLink = false;
+        String firebase = "https://xe74n.app.goo.gl/?apn=eyes.blue&afl=https://lamrimreader-cmd.eyes-blue.com/play&link=";
         String lamrimCmdUri = getString(R.string.lamrimCmdUri) + "play?";
         String queryStr = "mode=region";
         String speechStart = GlRecord.getSpeechIndexToStr(speechStartIndex) + ":" + Util.getMsToHMS(speechStartMs, ":", "", true);
@@ -897,26 +914,26 @@ public class LamrimReaderActivity extends AppCompatActivity {
         String theoryEnd = (theoryPageEnd + 1) + ":" + (theoryEndLine + 1);
 
         queryStr += "&speechStart=" + speechStart + "&speechEnd=" + speechEnd + "&theoryStart=" + theoryStart + "&theoryEnd=" + theoryEnd;
-            try {
-                if (title != null) queryStr += "&title=" + URLEncoder.encode(title, "utf8");
-                firebase+=URLEncoder.encode(lamrimCmdUri + queryStr, "utf8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+        try {
+            if (title != null) queryStr += "&title=" + URLEncoder.encode(title, "utf8");
+            firebase += URLEncoder.encode(lamrimCmdUri + queryStr, "utf8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "SHARE_REGION");
 
-        String msgTitle=((title.isEmpty())?"":title+" - ")+"廣論App專用連結(點擊以廣論App播放內容)：\n";
-        String secTitle="若上面的連結無法啟動，請點下面的連結啟動：\n";
+        String msgTitle = ((title.isEmpty()) ? "" : title + " - ") + getString(R.string.msgShareTitle);
+        String secTitle =getString(R.string.msgHintClickLink);
 
-        String outputStr=msgTitle + firebase;
-        if(isOutputSecondLink)outputStr+="\n"+secTitle + lamrimCmdUri + queryStr;
+        String outputStr = msgTitle + firebase;
+        if (isOutputSecondLink) outputStr += "\n" + secTitle + lamrimCmdUri + queryStr;
 
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
         //sendIntent.putExtra(Intent.EXTRA_TEXT, lamrimCmdUri + queryStr);
         sendIntent.putExtra(Intent.EXTRA_TEXT, outputStr);
         sendIntent.setType("text/plain");
-        startActivity(Intent.createChooser(sendIntent, "區段分享"));
+        startActivity(Intent.createChooser(sendIntent, getString(R.string.shareRegion)));
     }
 
     private void shareSegmentRest(String title, int speechStartIndex, int speechStartMs, int speechEndIndex, int speechEndMs, int theoryPageStart, int theoryStartLine, int theoryPageEnd, int theoryEndLine) {
@@ -927,30 +944,30 @@ public class LamrimReaderActivity extends AppCompatActivity {
         String theoryStart = (theoryPageStart + 1) + ":" + (theoryStartLine + 1);
         String theoryEnd = (theoryPageEnd + 1) + ":" + (theoryEndLine + 1);
 
-            try {
-                rest += speechStart + "/" + speechEnd + "/" + theoryStart + "/" + theoryEnd;
+        try {
+            rest += speechStart + "/" + speechEnd + "/" + theoryStart + "/" + theoryEnd;
 
-                if (title != null)
-                    rest += "/" + URLEncoder.encode(title, "utf8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            if (title != null)
+                rest += "/" + URLEncoder.encode(title, "utf8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "SHARE_REGION");
 
-        String msgTitle=((title.isEmpty())?"":title+" - ")+"廣論App專用連結(點擊以廣論App播放內容)：\n";
+        String msgTitle = ((title.isEmpty()) ? "" : title + " - ") + getString(R.string.msgShareTitle);
 
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, msgTitle + "https://xe74n.app.goo.gl/?apn=eyes.blue&afl=https://lamrimreader-cmd.eyes-blue.com/play&link="+lamrimCmdUri + rest);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, msgTitle + "https://xe74n.app.goo.gl/?apn=eyes.blue&afl=https://lamrimreader-cmd.eyes-blue.com/play&link=" + lamrimCmdUri + rest);
         sendIntent.setType("text/plain");
-        startActivity(Intent.createChooser(sendIntent, "區段分享"));
+        startActivity(Intent.createChooser(sendIntent, getString(R.string.shareRegion)));
     }
 
 
     public void showOnRegionOptionDialog(final int mediaIndex, final int mediaPosition) {
         final AlertDialog setRegionOptDialog = new AlertDialog.Builder(LamrimReaderActivity.this).create();
 
-        LayoutInflater factory = (LayoutInflater) getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater factory = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View v = factory.inflate(R.layout.region_option_dialog, null);
 //	    TextView mediaPositionDesc=(TextView) v.findViewById(R.id.time);
         TextView startDesc = (TextView) v.findViewById(R.id.leftBoundDesc);
@@ -988,15 +1005,15 @@ public class LamrimReaderActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mpController == null) {
-                    setSubtitleViewText("播放器已被系統回收，請重新載入。");
+                    setSubtitleViewText(getString(R.string.errPlayerRecycled));
                     createMpController();
                     return;
                 }
                 if (mpController.getSubtitle() == null) {
-                    Util.showErrorPopupWindow(LamrimReaderActivity.this, findViewById(R.id.rootLayout), "字幕載入失敗，請重新嘗試。");
+                    Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.dlgFailLoadSubtitle));
                     return;
                 }
-				/*if(regionSet[2]!=-1 && Math.abs(mediaIndex-regionSet[2])>1){
+                /*if(regionSet[2]!=-1 && Math.abs(mediaIndex-regionSet[2])>1){
 					Log.d(logTag,"regionSet[0]-regionSet[2]="+(regionSet[0]-regionSet[2]));
 					BaseDialogs.showErrorDialog(LamrimReaderActivity.this, "只能標記相鄰的音檔");
 					return;
@@ -1024,12 +1041,12 @@ public class LamrimReaderActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mpController == null) {
-                    setSubtitleViewText("播放器已被系統回收，請重新載入。");
+                    setSubtitleViewText(getString(R.string.errPlayerRecycled));
                     createMpController();
                     return;
                 }
                 if (mpController.getSubtitle() == null) {
-                    Util.showErrorPopupWindow(LamrimReaderActivity.this, findViewById(R.id.rootLayout), "字幕載入失敗，請重新嘗試。");
+                    Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.dlgFailLoadSubtitle));
                     return;
                 }
 				/*if(regionSet[0]!=-1 && Math.abs(regionSet[0]-mediaIndex)>1){
@@ -1057,14 +1074,14 @@ public class LamrimReaderActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (Math.abs(regionSet[0] - regionSet[2]) > 1) {
-                    BaseDialogs.showSimpleErrorDialog(LamrimReaderActivity.this, "只能標記相鄰的音檔");
+                    BaseDialogs.showSimpleErrorDialog(LamrimReaderActivity.this, getString(R.string.dlgOnlyAcceptNearAudio));
                     return;
                 }
 
                 swapRegionSet();
                 // startMediaIndex, startTimeMs, endMediaIndex, endTimeMs, theoryStartPage, theoryStartLine, theoryEndPage, theoryEndLine, startSubtitle, endSubtitle
                 String[] subtitleInfo = Util.getRegionInfo(fsm, regionSet);
-                if (subtitleInfo == null) subtitleInfo = new String[]{"無資料", "無資料"};
+                if (subtitleInfo == null) subtitleInfo = new String[]{getString(R.string.noData), getString(R.string.noData)};
                 BaseDialogs.showEditRegionDialog(LamrimReaderActivity.this, regionSet[0], regionSet[1], regionSet[2], regionSet[3], theoryHighlightRegion[0], theoryHighlightRegion[1], theoryHighlightRegion[2], theoryHighlightRegion[3], subtitleInfo[0] + " ~ " + subtitleInfo[1], -1, new Runnable() {
                             @Override
                             public void run() {
@@ -1085,7 +1102,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                                                 hideMediaController(false);
 //                       showMediaController();
                                             }
-                                        },200);
+                                        }, 200);
                                     }
                                 });
                             }
@@ -1100,7 +1117,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
         });
 
         setRegionOptDialog.setView(v);
-        setRegionOptDialog.setTitle("將目前播放位置設定為");
+        setRegionOptDialog.setTitle(getString(R.string.dlgSavePositionAs));
         setRegionOptDialog.setCanceledOnTouchOutside(true);
         setRegionOptDialog.show();
     }
@@ -1114,7 +1131,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                         // Log.d(getClass().getName(), "Set subtitle: "+
                         // subtitle.text);
                         // ========== 設定資訊顯示 =============
-                        subtitleIndex=index+1;
+                        subtitleIndex = index + 1;
 
                         runOnUiThread(new Runnable() {
                             @Override
@@ -1170,7 +1187,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                     @Override
                     public void onPlayerError() {
                         setSubtitleViewText(getString(R.string.errＷhilePlayMedia));
-                        FirebaseCrash.logcat(Log.ERROR,logTag, "Player error cause onPlayerError() been called.");
+                        FirebaseCrash.logcat(Log.ERROR, logTag, "Player error cause onPlayerError() been called.");
                     }
 
                     @Override
@@ -1178,7 +1195,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if(infoTextView.isShown())
+                                if (infoTextView.isShown())
                                     setInfoText(subtitle.startTimeMs);
                                 // synchronized (mpController){
                                 switch (subtitleViewRenderMode) {
@@ -1217,7 +1234,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                     @Override
                     public void onMediaPrepared() {
                         if (mpController == null) {
-                            setSubtitleViewText("載入失敗，播放器已被系統回收，請重新嘗試載入。");
+                            setSubtitleViewText(getString(R.string.errPlayerRecycled));
                             createMpController();
                             return;
                         }
@@ -1244,13 +1261,11 @@ public class LamrimReaderActivity extends AppCompatActivity {
                                 for (int i = 0; i < mediaBookMaps.length; i++) {
                                     int index = mediaBookMaps[i][1];
                                     if (index >= se.length) {
-                                        String errMsg = SpeechData.getSubtitleName(mediaIndex) + "字幕似乎不完整，請嘗試重新下載此字幕(選擇音檔 -> 長按" + SpeechData.getSubtitleName(mediaIndex) + " -> 更新)。";
-                                        //Util.showErrorPopupWindow(getApplicationContext(), "此音檔字幕似乎不完整，請嘗試重新下載此字幕(選擇音檔 -> 長按"+SpeechData.getSubtitleName(mediaIndex)+" -> 更新)。");
-                                        Util.showErrorPopupWindow(LamrimReaderActivity.this, errMsg);
+                                        String errMsg=String.format(getString(R.string.subtitleNotComp),  SpeechData.getSubtitleName(mediaIndex));
+                                        Util.showErrorToast(LamrimReaderActivity.this, errMsg);
                                         setSubtitleViewText(errMsg);
                                         Util.fireException("Theory index over subtitle index at " + SpeechData.getSubtitleName(mediaIndex) + " read index=" + index + ", array length=" + se.length, new ArrayIndexOutOfBoundsException());
                                         return;
-                                        //continue;
                                     }
 
                                     bookMap[index] = new int[4];
@@ -1306,9 +1321,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
                                 public void run() {
                                     try {
                                         bookView.setHighlightLine(theoryHighlightRegion[0], theoryHighlightRegion[1], theoryHighlightRegion[2], theoryHighlightRegion[3]);
-                                    }catch(Exception e){
-                                        Log.d(logTag,"Error happen while set the Highlight Line.");
-                                        Toast.makeText(LamrimReaderActivity.this,"論文大區塊標記失敗。",Toast.LENGTH_LONG).show();
+                                    } catch (Exception e) {
+                                        Log.d(logTag, "Error happen while set the Highlight Line.");
+                                        Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.markRegionFail));
                                     }
                                 }
                             }, 1000);
@@ -1392,8 +1407,8 @@ public class LamrimReaderActivity extends AppCompatActivity {
                         Log.d(getClass().getName(), "Show Title bar.");
 //						showTitle();
                         if (GLamrimSectIndex == 0 && GLamrimSect[1][0] != -1)
-                            Util.showInfoPopupWindow(LamrimReaderActivity.this, "本卷播放結束，請由播放面板點選下一卷繼續閱讀。");
-                        else Util.showInfoPopupWindow(LamrimReaderActivity.this, "播放結束");
+                            Util.showInfoToast(LamrimReaderActivity.this, getString(R.string.playFinishNext));
+                        else Util.showInfoToast(LamrimReaderActivity.this, getString(R.string.playFinish));
 //						if (wakeLock.isHeld())wakeLock.release();
                     }
                 });
@@ -1410,25 +1425,25 @@ public class LamrimReaderActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mpController == null) {
-                    setSubtitleViewText("播放器已被系統回收，請重新載入。");
+                    setSubtitleViewText(getString(R.string.errPlayerRecycled));
                     createMpController();
                 }
                 if (mpController.getSubtitle() == null) {
-                    setSubtitleViewText("載入字幕失敗，請重新載入。");
+                    setSubtitleViewText(getString(R.string.dlgFailLoadSubtitle));
                     return;
                 }
 
-                ImageButton reportBtn=(ImageButton)mpController.getControllerView().findViewById(R.id.pinBtn);
-                boolean isClick=!reportBtn.isSelected();
+                ImageButton reportBtn = (ImageButton) mpController.getControllerView().findViewById(R.id.pinBtn);
+                boolean isClick = !reportBtn.isSelected();
                 reportBtn.setSelected(isClick);
-                if(isClick) {
+                if (isClick) {
                     mpController.setShowLongTerm(true);
                     showMediaController();
-                }else{
+                } else {
                     mpController.setShowLongTerm(false);
                     hideMediaController(true);
                 }
-                Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "PinButtonOnMpController "+((isClick)?"Clicked":"Release"));
+                Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "PinButtonOnMpController " + ((isClick) ? "Clicked" : "Release"));
             }
         });
     }
@@ -1502,7 +1517,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
 //			int mEnd=cmdIntent.getIntExtra("mediaEnd", 0);
 //			Log.d(getClass().getName(), "Check is file exist : "+mStart+", "+mEnd);
 //			if(!fsm.isFilesReady(mStart) || !fsm.isFilesReady(mEnd)){
-//				Util.showErrorPopupWindow(LamrimReaderActivity.this, "音檔或字幕檔案不存在，無法載回最後狀態", 1000);
+//				Util.showErrorToast(LamrimReaderActivity.this, "音檔或字幕檔案不存在，無法載回最後狀態", 1000);
 //				return;
 //			}
 
@@ -1514,7 +1529,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
             Log.d(getClass().getName(), "Title: " + title);
             if (title != null)
                 actionBarTitle = getString(R.string.menuStrPlayRegionRecShortName) + ": " + title;
-            else actionBarTitle = getString(R.string.menuStrPlayRegionRecShortName) + ": 未知標題";
+            else actionBarTitle = getString(R.string.menuStrPlayRegionRecShortName) + ": "+getString(R.string.dlgUntitle);
             Log.d(getClass().getName(), "actionBarTitle: " + title);
             startRegionPlay(cmdIntent.getIntExtra("mediaStart", 0),
                     cmdIntent.getIntExtra("startTimeMs", 0),
@@ -1560,8 +1575,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
             // Here must check is the file exist, or unlimited loop happen [file not exist] -> [switch to SpeechMenuActivity] -> show network access dialog -> disallow -> [here] and so on.
             if (!fsm.isFilesReady(mediaIndex)) {
-                Util.showErrorPopupWindow(LamrimReaderActivity.this, SpeechData.getSubtitleName(mediaIndex) + "音檔或字幕檔案不存在，無法載回最後狀態", 1000);
-                setSubtitleViewText(SpeechData.getSubtitleName(mediaIndex) + "音檔或字幕檔案不存在，無法載回最後狀態");
+                String errMsg=String.format(getString(R.string.errRestorePlayStateFailLakeAudio), SpeechData.getSubtitleName(mediaIndex));
+                Util.showErrorToast(LamrimReaderActivity.this, errMsg, 1000);
+                setSubtitleViewText(errMsg);
                 return;
             }
             Log.d(logTag, "Call startPlay from onResume.");
@@ -1584,7 +1600,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
             int mEnd = playRecord.getInt("endMediaIndex", -1);
             if (mStart == -1 || mEnd == -1) {
                 Log.d(getClass().getName(), "region start media=" + mStart + ", region end media=" + mEnd + ", skip load.");
-                setSubtitleViewText("偵測到錯誤參數，停止載入，請重新嘗試。");
+                setSubtitleViewText(getString(R.string.errPlayFailArgErr));
                 return;
             }
             Log.d(getClass().getName(), "Check is file exist : " + mStart + ", " + mEnd);
@@ -1592,8 +1608,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
                 int leakMedia = -1;
                 if (!fsm.isFilesReady(mStart)) leakMedia = mStart;
                 else leakMedia = mEnd;
-                Util.showErrorPopupWindow(LamrimReaderActivity.this, SpeechData.getSubtitleName(leakMedia) + "音檔或字幕檔案不存在，無法載入媒體！", 1000);
-                setSubtitleViewText(SpeechData.getSubtitleName(leakMedia) + "音檔或字幕檔案不存在，無法載入媒體！");
+                String errMsg=String.format(getString(R.string.errPlayFailLakeAudio), SpeechData.getSubtitleName(leakMedia));
+                Util.showErrorToast(LamrimReaderActivity.this, errMsg, 1000);
+                setSubtitleViewText(errMsg);
                 return;
             }
 
@@ -1738,25 +1755,25 @@ public class LamrimReaderActivity extends AppCompatActivity {
         // return super.onCreateOptionsMenu(menu);
         SubMenu rootMenu = menu.addSubMenu("");
         speechMenu = rootMenu.add(getString(R.string.menuStrSelectSpeech));
-        speechMenu.setIcon(R.drawable.speech);
-        globalLamrim = rootMenu.add(getString(R.string.globalLamrim));
-        globalLamrim.setIcon(R.drawable.global_lamrim);
+ //       globalLamrim = rootMenu.add(getString(R.string.globalLamrim));
         setRegion = rootMenu.add(getString(R.string.menuStrSetRecord));
-        setRegion.setIcon(R.drawable.region);
         playRegionRec = rootMenu.add(getString(R.string.menuStrPlayRegionRec));
-        playRegionRec.setIcon(R.drawable.ic_region_play);
         swRenderMode = rootMenu.add(getString(R.string.menuStrRenderMode));
-        swRenderMode.setIcon(R.drawable.render_mode);
         prjWeb = rootMenu.add(getString(R.string.menuStrOpenProjectWeb));
-        prjWeb.setIcon(R.drawable.project_web);
         exitApp = rootMenu.add(getString(R.string.exitApp));
-        exitApp.setIcon(R.drawable.exit_app);
 
         rootMenuItem = rootMenu.getItem();
         // rootMenuItem.setIcon(R.drawable.menu_down_48x48);
-        rootMenuItem.setIcon(R.drawable.menu_down);
-        MenuItemCompat.setShowAsAction(rootMenuItem, MenuItem.SHOW_AS_ACTION_ALWAYS);
+        rootMenuItem.setIcon(R.drawable.ic_menu_down);
+        speechMenu.setIcon(R.drawable.ic_speech);
+//        globalLamrim.setIcon(R.drawable.ic_global_lamrim);
+        setRegion.setIcon(R.drawable.ic_region);
+        playRegionRec.setIcon(R.drawable.ic_region_play);
+        swRenderMode.setIcon(R.drawable.ic_render_mode);
+        prjWeb.setIcon(R.drawable.ic_project_web);
+        exitApp.setIcon(R.drawable.ic_exit_app);
 
+        MenuItemCompat.setShowAsAction(rootMenuItem, MenuItem.SHOW_AS_ACTION_ALWAYS);
         getSupportActionBar().setCustomView(actionBarControlPanel);
         getSupportActionBar().setDisplayShowCustomEnabled(true);
         return super.onCreateOptionsMenu(menu);
@@ -1769,11 +1786,11 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
 
         if (Build.VERSION.SDK_INT >= 23)// 在點選選單的同時要求檔案授權，未授權不執行。
-            if (ContextCompat.checkSelfPermission(LamrimReaderActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-                BaseDialogs.showSimpleErrorDialog(LamrimReaderActivity.this,"未取得存取檔案授權","您未同意廣論App存取檔案，廣論App從網路上下載音檔後無法正常儲存，也無法正常播放，若您在拒絕授權的同時點選不再詢問，您必須重新安裝廣論App，系統才會再顯示詢問授權對話框。");
+            if (ContextCompat.checkSelfPermission(LamrimReaderActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                BaseDialogs.showSimpleErrorDialog(LamrimReaderActivity.this, getString(R.string.dlgNotGrantStorageYet), getString(R.string.dlgHintGrantStroage));
                 ActivityCompat.requestPermissions(LamrimReaderActivity.this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_ACCESS_PERMISSION_REQUEST);
                 return true;
-        }
+            }
 
         String gid = (String) item.getTitle();
         Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.MENU_CLICK, ((gid.length() == 0) ? "MENU_BUTTON" : gid) + "_PRESSED");
@@ -1792,11 +1809,11 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
         if (item.getTitle().equals(getString(R.string.menuStrSelectSpeech))) {
             startSpeechMenuActivity();
-        } else if (item.getTitle().equals(getString(R.string.globalLamrim))) {
-            startGlobalLamrimCalendarActivity();
+//        } else if (item.getTitle().equals(getString(R.string.globalLamrim))) {
+//            startGlobalLamrimCalendarActivity();
         } else if (item.getTitle().equals(getString(R.string.menuStrSetRecord))) {
             if (mediaIndex == -1)
-                BaseDialogs.showSimpleErrorDialog(this, "未載入音檔", "請先從右上角點選圓形的選單圖示，再點選「選擇音檔」，最後選擇您要標記的音檔。");
+                BaseDialogs.showSimpleErrorDialog(this, getString(R.string.dlgNotLoadAudioYet), getString(R.string.dlgHintLoadAudio));
             else
                 showOnRegionOptionDialog(mediaIndex, mpController.getCurrentPosition());
 
@@ -1805,7 +1822,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
         } else if (item.getTitle().equals(getString(R.string.menuStrPlayRegionRec))) {
             if (RegionRecord.records.size() > 0) showRecordListPopupMenu();
             else
-                BaseDialogs.showSimpleErrorDialog(this, "無區段記錄", "請在載入音檔後，移動播放位置到要標記的地方，再點選「記錄區段」紀錄並儲存區段。");
+                BaseDialogs.showSimpleErrorDialog(this, getString(R.string.dlgNoRecord), getString(R.string.dlgHintRecord));
         } else if (item.getTitle().equals(getString(R.string.menuStrOpenProjectWeb))) {
             startProjectWebUrl();
         } else if (item.getTitle().equals(getString(R.string.exitApp))) {
@@ -1870,7 +1887,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
         try {
             startActivity(it);
         } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(LamrimReaderActivity.this, "您的裝置上未安裝任何可供使用的網頁瀏覽元件，無法開啟網頁。", Toast.LENGTH_LONG).show();
+            Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.errLakeBrowser));
         }
     }
 
@@ -1919,7 +1936,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                 runtimeEditor.commit();
 
                 Log.d(logTag, "Call reset player in onActivityResult.");
-                mpController.reset();
+                //mpController.reset();
 //			AnalyticsApplication.sendEvent("activity", "SpeechMenu_result", "select_index_"	+ selected, null);
                 // After onActivityResult, the life-cycle will return to onStart,
                 // do start downloader in OnResume.
@@ -2016,7 +2033,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                 File file = new File(filePath);
 
                 if (!file.exists()) {
-                    Util.showErrorPopupWindow(LamrimReaderActivity.this, findViewById(R.id.rootLayout), "您所選擇的檔案損毀或無法讀取。");
+                    Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.errOpenPicFail));
                     return;
                 }
 
@@ -2034,14 +2051,14 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
     public boolean startPlay(final int mediaIndex) {
         if (mediaIndex == -1) {
-            Util.showErrorPopupWindow(LamrimReaderActivity.this, "偵測到錯誤參數，放棄載入音檔。", 1000);
+            Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.errPlayFailArgErr), 1000);
             Util.fireException("PLAY_EXCEPTION: the media index is -1.", new ArrayIndexOutOfBoundsException());
             return false;
         }
         // This avoid the unlimit loop that reload last state on onResume -> file not exist -> SpeechMenuActivity -> showDownloadDialog -> disallow -> onResume ... so on.
-        File f = fsm.getLocalMediaFile(mediaIndex);
-        if (f == null || !f.exists()) {
-            Log.d(getClass().getName(), "startPlay: the media is not exist, skip play.");
+        if (!fsm.isFilesReady(mediaIndex)) {
+            Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.errPlayFailAudioNotFound), 1000);
+            Log.d(getClass().getName(), "startPlay: the media is not ready, skip play.");
             return false;
         }
 
@@ -2054,11 +2071,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
 
             // It will not execute if there is the AsyncTask, maybe cause by only one UI thread.
-            startPlayThread = new Thread(new Runnable() {
-
-                //			Util.getRootView(this).postDelayed(new Runnable(){
-                @Override
-                public void run() {
+//            startPlayThread = new Thread(new Runnable() {
+//                @Override
+//                public void run() {
                     try {
                         // Check duplicate load media.
 						/*
@@ -2076,6 +2091,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
                         setSubtitleViewText(getString(R.string.dlgDescPrepareSpeech));
                         Log.d(logTag, Thread.currentThread().getName() + " setDataSource.");
                         //mpController.setDataSource(getApplicationContext(),	mediaIndex);
+
+                        mpController.release();
+                        createMpController();
                         mpController.setDataSource(LamrimReaderActivity.this, mediaIndex);
                     } catch (IllegalArgumentException e) {
                         setSubtitleViewText(getString(R.string.errIAEwhileSetPlayerSrc));
@@ -2093,16 +2111,15 @@ public class LamrimReaderActivity extends AppCompatActivity {
                         setSubtitleViewText(String.format(getString(R.string.errIOEwhileSetPlayerSrc), SpeechData.getNameId(mediaIndex)));
                         Util.fireException("Media Player error while load media.", e);
                         e.printStackTrace();
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         setSubtitleViewText(getString(R.string.errＷhilePlayMedia));
                         Util.fireException("Media Player error while load media.", e);
                         e.printStackTrace();
                     }
-                    return;
-                }
-            });
-            startPlayThread.start();
+  //                  return;
+ //               }
+ //           });
+//            startPlayThread.start();
         }// synchronized
         return true;
     }
@@ -2197,24 +2214,24 @@ public class LamrimReaderActivity extends AppCompatActivity {
     private void showSetTextSizeDialog() {
         LayoutInflater factory = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View v = factory.inflate(R.layout.set_text_size_dialog_view, null);
-        RadioButton defFont=v.findViewById(R.id.defFont);
-        RadioButton bktFont=v.findViewById(R.id.bktFont);
+        RadioButton defFont = v.findViewById(R.id.defFont);
+        RadioButton bktFont = v.findViewById(R.id.bktFont);
         bktFont.setTypeface(Typeface.createFromAsset(this.getAssets(), "BKT_Lamrim.ttf"));
-        int fontOpt=runtime.getInt(getString(R.string.fontKey),getResources().getInteger(R.integer.defFontProp));
-        if(fontOpt==getResources().getInteger(R.integer.defFontProp))defFont.setChecked(true);
+        int fontOpt = runtime.getInt(getString(R.string.fontKey), getResources().getInteger(R.integer.defFontProp));
+        if (fontOpt == getResources().getInteger(R.integer.defFontProp)) defFont.setChecked(true);
         else bktFont.setChecked(true);
 
-        RadioGroup fontRadioGroup=v.findViewById(R.id.fontRadioGroup);
+        RadioGroup fontRadioGroup = v.findViewById(R.id.fontRadioGroup);
         fontRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
-                if(i==R.id.defFont){
+                if (i == R.id.defFont) {
                     Log.d(getClass().getName(), "User click default font.");
-                    runtimeEditor.putInt(getString(R.string.fontKey),getResources().getInteger(R.integer.defFontProp));
+                    runtimeEditor.putInt(getString(R.string.fontKey), getResources().getInteger(R.integer.defFontProp));
                 }
-                if(i==R.id.bktFont){
+                if (i == R.id.bktFont) {
                     Log.d(getClass().getName(), "User click BKT font.");
-                    runtimeEditor.putInt(getString(R.string.fontKey),getResources().getInteger(R.integer.bktFontProp));
+                    runtimeEditor.putInt(getString(R.string.fontKey), getResources().getInteger(R.integer.bktFontProp));
                 }
                 runtimeEditor.apply();
                 bookView.rebuildView();
@@ -2237,8 +2254,8 @@ public class LamrimReaderActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                theorySb.setMax(textMaxSize- textMinSize);
-                subtitleSb.setMax(textMaxSize- textMinSize);
+                theorySb.setMax(textMaxSize - textMinSize);
+                subtitleSb.setMax(textMaxSize - textMinSize);
                 theorySb.setProgress(orgTheorySize - textMinSize);
                 subtitleSb.setProgress(orgSubtitleSize - textMinSize);
             }
@@ -2330,111 +2347,104 @@ public class LamrimReaderActivity extends AppCompatActivity {
         setTextSizeDialog.show();
     }
 
-    private boolean loadSearchObj(final ProgressDialog pd){
-        final File subSearchCache=fsm.getSubtitleSearchCacheFile();
-        if(subSearchCache.exists()) {    // 嘗試從快取檔案取回字幕搜尋快取物件
+    private boolean loadSearchObj(final ProgressDialog pd) {
+        final File subSearchCache = fsm.getSubtitleSearchCacheFile();
+        if (subSearchCache.exists()) {    // 嘗試從快取檔案取回字幕搜尋快取物件
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pd.setTitle("讀取資料");
-                    pd.setMessage("字幕快取檔案讀取中，請稍候！");
+                    pd.setTitle(getString(R.string.loadingData));
+                    pd.setMessage(getString(R.string.loadingSubtitles));
                     pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                     pd.show();
                 }
             });
 
-            final long startLoadTime=System.currentTimeMillis();
+            final long startLoadTime = System.currentTimeMillis();
             try {
                 ObjectInputStream ois = new ObjectInputStream(new FileInputStream(subSearchCache));
                 subtitleSearch = (SubtitleSearch[]) ois.readObject();
             } catch (Exception e) {
                 subSearchCache.delete();
-                Util.showErrorPopupWindow(LamrimReaderActivity.this,"載入快取失敗，請點選[選單] -> [選擇音檔] -> [儲存維護]後再嘗試一次。");
+                Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.errLoadCatchFail));
                 e.printStackTrace();
                 return false;
             }
-            Util.fireTimming(LamrimReaderActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "LOAD_ALL_SUBTITLE_FROM_CACHE", (int)(System.currentTimeMillis() - startLoadTime));
-        }
-        else {  // 從字幕檔案中重建字幕搜尋物件
+            Util.fireTimming(LamrimReaderActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "LOAD_ALL_SUBTITLE_FROM_CACHE", (int) (System.currentTimeMillis() - startLoadTime));
+        } else {  // 從字幕檔案中重建字幕搜尋物件
 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pd.setTitle("讀取資料");
-                    pd.setMessage("字幕檔案讀取中，請稍候！");
+                    pd.setTitle(getString(R.string.loadingData));
+                    pd.setMessage(getString(R.string.loadingSubtitles));
                     pd.setMax(320);
                     pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                     pd.show();
                 }
             });
 
-            final long startLoadTime=System.currentTimeMillis();
-            boolean noLeak=true;
+            final long startLoadTime = System.currentTimeMillis();
+            boolean noLeak = true;
             for (int i = 0; i < 320; i++) {
                 // 若第i個字幕已經讀取到subtitleSearch物件中則不重複讀取
-                if (subtitleSearch[i] != null){
+                if (subtitleSearch[i] != null) {
                     pd.incrementProgressBy(1);
-                    noLeak=false;
+                    noLeak = false;
                     continue;
                 }
 
-                File f = fsm.getLocalSubtitleFile(i);
-                if (!f.exists()) {
-                    pd.dismiss();
-                    BaseDialogs.showSimpleErrorDialog(LamrimReaderActivity.this, "字幕下載不完全，請先下載所有字幕。");
-                    return false;
-                }
-                subtitleSearch[i] = new SubtitleSearch(Util.loadSubtitle(f));
+                subtitleSearch[i] = new SubtitleSearch(Util.loadSubtitle(LamrimReaderActivity.this, i));
                 pd.incrementProgressBy(1);
-                if(Thread.currentThread().isInterrupted())return false;
+                if (Thread.currentThread().isInterrupted()) return false;
             }
 
-            if(noLeak) {
-                Util.fireTimming(LamrimReaderActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "LOAD_ALL_SUBTITLE_FROM_SRT_FILES", (int)(System.currentTimeMillis() - startLoadTime));
+            if (noLeak) {
+                Util.fireTimming(LamrimReaderActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "LOAD_ALL_SUBTITLE_FROM_SRT_FILES", (int) (System.currentTimeMillis() - startLoadTime));
             }
             // Write the object to disk with a new thread.
-            new Thread(new Runnable(){
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final long startLoadTime=System.currentTimeMillis();
+                    final long startLoadTime = System.currentTimeMillis();
                     try {
                         ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(subSearchCache));
                         oos.writeObject(subtitleSearch);
                         oos.flush();
                         oos.close();
                         System.out.println("Write finish");
-                    }catch(Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                         Util.fireException("Error happen while write cache file of subtitle search object.", e);
                         return;
                     }
-                    Util.fireTimming(LamrimReaderActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "SAVE_SUBTITLE_CACHE_TO_FILE", (int)(System.currentTimeMillis() - startLoadTime));
+                    Util.fireTimming(LamrimReaderActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "SAVE_SUBTITLE_CACHE_TO_FILE", (int) (System.currentTimeMillis() - startLoadTime));
                 }
             }).start();
 
         }
-        
-        if(Thread.currentThread().isInterrupted())return false;
+
+        if (Thread.currentThread().isInterrupted()) return false;
         return true;
     }
 
-    private void showSearchSubtitleDialog(final String string) {
+    private void showSearchSubtitleDialog(final View searchView, final String string) {
         final ProgressDialog pd = new ProgressDialog(this);
 
         Runnable run = new Runnable() {
             @Override
             public void run() {
                 // =============== 載入字幕資訊 ==============
-                boolean isSearchReady=true;
+                boolean isSearchReady = true;
                 for (int i = 0; i < 320; i++)   // 檢查記憶體中是否320個搜尋物件是否都存在
                     if (subtitleSearch[i] == null) {
-                        isSearchReady=false;
+                        isSearchReady = false;
                         break;
                     }
 
                 long loadStartTime = System.currentTimeMillis();
-                if(!isSearchReady) if(!loadSearchObj(pd)){
-                    Log.d(getClass().getName(),"User cancel the build data procedure.");
+                if (!isSearchReady) if (!loadSearchObj(pd)) {
+                    Log.d(getClass().getName(), "User cancel the build data procedure.");
                     return;
                 }
                 final long loadTime = System.currentTimeMillis() - loadStartTime;
@@ -2443,15 +2453,12 @@ public class LamrimReaderActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
- //                       pd.setTitle("搜尋中");
- //                       pd.setMessage("搜尋「" + string + "」中 ...");
- //                       pd.setProgress(0);
                         Thread t = new Thread() {
                             @Override
                             public void run() {
-
+                                final SubtitleSearchAdapter subtitleSearchAdapter;
                                 int counter = 0;
-                                long searchStartTime=System.currentTimeMillis();
+                                long searchStartTime = System.currentTimeMillis();
 
                                 for (int i = 0; i < 320; i++) {
                                     int[][] res = subtitleSearch[i].search(string);
@@ -2465,9 +2472,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
                                 }
 
                                 final long searchTime = System.currentTimeMillis() - searchStartTime;
-
                                 Log.d(getClass().getName(), "Search result count: " + counter + ", spend: " + searchTime + "ms.");
-
 
                                 ArrayList<HashMap<String, String>> subtitleSearchFakeList = new ArrayList<>();
                                 for (int i = 0; i < subtitleSearchResult.size(); ++i)
@@ -2475,20 +2480,18 @@ public class LamrimReaderActivity extends AppCompatActivity {
                                 subtitleSearchAdapter = new SubtitleSearchAdapter(LamrimReaderActivity.this, subtitleSearchFakeList,
                                         android.R.layout.simple_list_item_2, new String[]{"title", "desc"},
                                         new int[]{android.R.id.text1, android.R.id.text2});
-
+                               // subtitleSearchAdapter.setSubtitleSearchIndex(subtitleSearchResult);
                                 // ========================= 建立統計資訊與 UI ===============================
                                 NumberFormat nf = NumberFormat.getInstance();
                                 nf.setMaximumFractionDigits(3);    //小數後3位
-                                String loadTimeStr=nf.format((double) loadTime / 1000);
+                                String loadTimeStr = nf.format((double) loadTime / 1000);
                                 String timeStr = nf.format((double) searchTime / 1000);
-                                String text = "共" + counter + "筆紀錄, 載入耗時"+loadTimeStr+", 搜尋耗時" + timeStr + "秒";
+                                String text = String.format(getString(R.string.searchSummary), counter, loadTimeStr, timeStr);
                                 final SpannableString str = new SpannableString(text);
                                 str.setSpan(new ForegroundColorSpan(Color.GREEN), 0, text.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-                                if (subtitleSearchHeaderTextView == null)
-                                    subtitleSearchHeaderTextView = new TextView(LamrimReaderActivity.this);
-                                subtitleSearchHeaderTextView.setGravity(Gravity.CENTER);
-                                // =========================================================================
 
+                                // =========================================================================
+                                final ListView subtitleSearchList = (ListView) searchView.findViewById(R.id.listView);
                                 subtitleSearchList.setOnItemClickListener(new OnItemClickListener() {
                                     @Override
                                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -2496,18 +2499,27 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
                                         SubtitleSearchIndex ssi = subtitleSearchResult.get(pos);
                                         // =================== Check are files ready ====================
-                                        File localMediaFile = fsm.getLocalMediaFile(ssi.mediaIndex);
-                                        File localSubFile = fsm.getLocalSubtitleFile(ssi.mediaIndex);
-                                        if (!localMediaFile.exists() || !localSubFile.exists()) {
-                                            Util.showErrorPopupWindow(LamrimReaderActivity.this, "音檔或字幕檔不存在，無法自動切換至該位置，請先下載" + SpeechData.getSubtitleName(ssi.mediaIndex) + "的檔案資源。");
+                                        if (!fsm.isFilesReady(mediaIndex)) {
+                                            Util.showErrorToast(LamrimReaderActivity.this, String.format(getString(R.string.errFailToSwitchAudio), SpeechData.getSubtitleName(ssi.mediaIndex)));
                                             return;
                                         }
                                         // ==============================================================
+                                        //SubtitleSearch sse = subtitleSearch[ssi.mediaIndex];
+                                       //playNormalMode(ssi.mediaIndex, ssi.startTime);
+
+
                                         SubtitleSearch sse = subtitleSearch[ssi.mediaIndex];
                                         SubtitleElement se = sse.getSubtitle(ssi.getSubtitleIndex());
                                         playNormalMode(ssi.mediaIndex, se.startTimeMs);
                                     }
                                 });
+
+                                if (subtitleSearchHeaderTextView == null) {
+                                    subtitleSearchHeaderTextView = new TextView(LamrimReaderActivity.this);
+                                    subtitleSearchHeaderTextView.setGravity(Gravity.CENTER);
+                                    subtitleSearchList.addFooterView(subtitleSearchHeaderTextView);
+                                }
+
 
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -2535,73 +2547,295 @@ public class LamrimReaderActivity extends AppCompatActivity {
         pd.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
-                if(t.isAlive()) {
+                if (t.isAlive()) {
                     t.interrupt();
-                    Log.d(getClass().getName(),"Stop build data thread of subtitle search.");
+                    Log.d(getClass().getName(), "Stop build data thread of subtitle search.");
                 }
             }
         });
-
-
         t.start();
-//        pd.show();
+    }
+
+    private void searchFromHost(final View searchView, final String searchStr) {
+        final ProgressDialog pd = ProgressDialog.show(this, getString(R.string.msgSearchSendingReq), getString(R.string.msgPlsWait), true);
+
+        Thread t = new Thread(new Runnable() {
+
+            private void setSearchNextBtnEnable(final ImageButton searchNextBtn){
+                LamrimReaderActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        searchNextBtn.setEnabled(true);
+                    }
+                });
+            }
+
+            @Override
+            public void run() {
+                final ImageButton searchNextBtn = (ImageButton) searchView.findViewById(R.id.searchNextBtn);
+                final ListView subtitleSearchList = (ListView) searchView.findViewById(R.id.listView);
+                HttpURLConnection connection = null;
+                String urlStr = null;
+                JSONObject json = null;
+                long startTime = System.currentTimeMillis();
+                try {
+                    urlStr = getString(R.string.searchHost) + "?fmt=json&str=" + URLEncoder.encode(searchStr, "UTF-8");
+                } catch (UnsupportedEncodingException uee) {
+                    pd.dismiss();
+                    Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.msgUTF8EncodeUnsupport));
+                    setSearchNextBtnEnable(searchNextBtn);
+                    return;
+                }
+                try {
+                    URL url = new URL(urlStr);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestProperty("Content-Type", "application/json");
+                    connection.setRequestProperty("Accept", "application/json");
+                    connection.setRequestProperty("Accept-Charset", "utf-8,*");
+                    Log.d("Get-Request", url.toString());
+                    Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "SEARCH_LAMRIM_FROM_SERVER");
+                    try {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        StringBuilder stringBuilder = new StringBuilder();
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            stringBuilder.append(line).append("\n");
+                        }
+                        bufferedReader.close();
+                        Log.d("Get-Response", stringBuilder.toString());
+                        json = new JSONObject(stringBuilder.toString());
+                    } finally {
+                        connection.disconnect();
+                    }
+                } catch (IOException | JSONException  e) {
+                    pd.dismiss();
+                    setSearchNextBtnEnable(searchNextBtn);
+                    Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.msgSendReqIOErr));
+                    Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "SEARCH_LAMRIM_FROM_SERVER_FAILURE");
+                    Log.e(logTag, e.getMessage(), e);
+                    e.printStackTrace();
+                    return;
+                }
+                if (json == null) {
+                    pd.dismiss();
+                    setSearchNextBtnEnable(searchNextBtn);
+                    return;
+                }
+
+                long loadTime = System.currentTimeMillis() - startTime;
+                int count = -1, searchTime = -1;
+                JSONArray jArray = null;
+                try {
+                    count = json.getInt("count");
+                    searchTime = json.getInt("spendTime");
+                    jArray = (JSONArray) json.get("list");
+                } catch (JSONException jse) {
+                    pd.dismiss();
+                    setSearchNextBtnEnable(searchNextBtn);
+                    Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.msgJsonParseErr));
+                    Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "SEARCH_LAMRIM_FROM_SERVER_FAILURE");
+                    jse.printStackTrace();
+                    return;
+                }
+
+                if (count < 1) {
+                    pd.dismiss();
+                    runOnUiThread(new Runnable(){
+                        @Override
+                        public void run(){
+                            subtitleSearchList.setAdapter(null);
+                            subtitleSearchList.invalidate();
+                        }
+                    });
+                    setSearchNextBtnEnable(searchNextBtn);
+                    Util.showInfoToast(LamrimReaderActivity.this, getString(R.string.msgSearchNotFound));
+                    return;
+                }
+
+                //{"searchString":"ab","count":1,"list":[{"subSerlNum":523,"startTime":1440943,"textIndex":6,"text":"如果英文叫table，那沒關係，","mediaId":294}],"spendTime":1}
+                //SubtitleSearchIndex(int mediaId, int subSerialNum, int startTime, String subtitleText, int indexOfSubtitle, int lenOfSearchStr)
+                final JSONArray ssi = jArray;
+                final ArrayList<RemoteSubtitleSearchIndex> subtitleSearchResult = new ArrayList<>();
+                try {
+                    for (int i = 0; i < count; i++) {
+                        JSONObject jobj = ssi.getJSONObject(i);
+                        int mediaIndex = jobj.getInt("mediaId");
+                        int subSerlNum = jobj.getInt("subSerlNum");
+                        int textIndex = jobj.getInt("startTime");
+                        String subtitleText = jobj.getString("text");
+                        int indexOfSubtitle = jobj.getInt("textIndex");
+                        int lenOfSearchStr = searchStr.length();
+                        subtitleSearchResult.add(new RemoteSubtitleSearchIndex(mediaIndex, subSerlNum, textIndex, subtitleText, indexOfSubtitle, lenOfSearchStr));
+                    }
+                } catch (JSONException jse) {
+                    pd.dismiss();
+                    setSearchNextBtnEnable(searchNextBtn);
+                    Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.msgJsonParseErr));
+                    Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "SEARCH_LAMRIM_FROM_SERVER_FAILURE_PARSE_ERROR");
+                    jse.printStackTrace();
+                    return;
+                }
+
+                Log.d(getClass().getName(), "Search result count: " + count + ", Load time: " + loadTime + ", spend: " + searchTime + "ms.");
+
+                ArrayList<HashMap<String, String>> subtitleSearchFakeList = new ArrayList<>();
+                for (int i = 0; i < jArray.length(); ++i)
+                    subtitleSearchFakeList.add(fakeSample);
+                final RemoteSubtitleSearchAdapter subtitleSearchAdapter = new RemoteSubtitleSearchAdapter(LamrimReaderActivity.this, subtitleSearchFakeList,
+                        android.R.layout.simple_list_item_2, new String[]{"title", "desc"},
+                        new int[]{android.R.id.text1, android.R.id.text2});
+                subtitleSearchAdapter.setSubtitleSearchIndex(subtitleSearchResult);
+
+                // ========================= 建立統計資訊與 UI ===============================
+                NumberFormat nf = NumberFormat.getInstance();
+                nf.setMaximumFractionDigits(3);    //小數後3位
+                String loadTimeStr = nf.format((double) loadTime / 1000);
+                String timeStr = nf.format((double) searchTime / 1000);
+                String text = String.format(getString(R.string.searchSummary), count, loadTimeStr, timeStr);
+                final SpannableString str = new SpannableString(text);
+                str.setSpan(new ForegroundColorSpan(Color.GREEN), 0, text.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+
+                // =========================================================================
+                subtitleSearchList.setOnItemClickListener(new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        int pos = position - subtitleSearchList.getHeaderViewsCount();
+                        try {
+                            JSONObject data = ssi.getJSONObject(pos);
+                            // =================== Check are files ready ====================
+                            if (!fsm.isFilesReady(data.getInt("mediaId"))) {
+                                pd.dismiss();
+                                setSearchNextBtnEnable(searchNextBtn);
+                                Util.showErrorToast(LamrimReaderActivity.this, String.format(getString(R.string.errFailToSwitchAudio), SpeechData.getSubtitleName(data.getInt("mediaId"))));
+                                return;
+                            }
+                            playNormalMode(data.getInt("mediaId"), data.getInt("startTime"));
+                        } catch (JSONException jse) {
+                            pd.dismiss();
+                            setSearchNextBtnEnable(searchNextBtn);
+                            Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.msgJsonParseErr));
+                            Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "SEARCH_LAMRIM_FROM_SERVER_FAILURE_PARSE_ERROR");
+                            return;
+                        }
+                    }
+                });
+
+                if (subtitleSearchHeaderTextView == null) {
+                    subtitleSearchHeaderTextView = new TextView(LamrimReaderActivity.this);
+                    subtitleSearchHeaderTextView.setGravity(Gravity.CENTER);
+                    subtitleSearchList.addFooterView(subtitleSearchHeaderTextView);
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        pd.dismiss();
+                        subtitleSearchHeaderTextView.setText(str);
+                        if (subtitleSearchList.getHeaderViewsCount() == 0)
+                            subtitleSearchList.addHeaderView(subtitleSearchHeaderTextView, null, false);
+
+                        subtitleSearchList.setAdapter(subtitleSearchAdapter);
+                        subtitleSearchList.setEnabled(true);
+
+                        subtitleSearchList.invalidate();
+                        subtitleSearchList.setVisibility(View.VISIBLE);
+                        searchNextBtn.setEnabled(true);
+                    }
+                });
+            }
+        });
+        t.start();
 
     }
 
     //TextView lamrimLabel=null;
     //TextView subtitleLabel=null;
     private void showSearchDialog() {
+        Log.d(logTag, "Into showSearchDialog.");
         LayoutInflater factory = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         final View searchView = factory.inflate(R.layout.search_view, null);
         final TextView lamrimLabel = (TextView) searchView.findViewById(R.id.lamrimLabel);
         final TextView subtitleLabel = (TextView) searchView.findViewById(R.id.subtitleLabel);
         final SeekBar sw = (SeekBar) searchView.findViewById(R.id.seekBar);
-        searchLastBtn = (ImageButton) searchView.findViewById(R.id.searchLastBtn);
-        searchNextBtn = (ImageButton) searchView.findViewById(R.id.searchNextBtn);
-        searchInput = (EditText) searchView.findViewById(R.id.searchInput);
-        subtitleSearchList = (ListView) searchView.findViewById(R.id.listView);
+        final ImageButton searchLastBtn = (ImageButton) searchView.findViewById(R.id.searchLastBtn);
+        final ImageButton searchNextBtn = (ImageButton) searchView.findViewById(R.id.searchNextBtn);
+        final EditText searchInput = (EditText) searchView.findViewById(R.id.searchInput);
+        final CheckBox searchFrom = (CheckBox) searchView.findViewById(R.id.searchFrom);
+        final ListView subtitleSearchList = (ListView) searchView.findViewById(R.id.listView);
+        final SearchListener onSearchLamrimListener = new SearchListener(searchLastBtn, searchNextBtn, searchInput);
+        final String locale = getResources().getConfiguration().locale.getCountry();
 
-        final SearchListener onSearchLamrimListener = new SearchListener();
+
+/*        Log.d(logTag,"mLocate: "+locale);
+        // No support search with network in china in this stage.
+        if(locale.equals("CN")){
+            searchFrom.setVisibility(View.GONE);
+            searchFrom.post(new Runnable() {
+                @Override
+                public void run() {
+                    searchFrom.setChecked(false);
+                }
+            });
+        }
+*/
 
         final Runnable swToSearchLamrim = new Runnable() {
             @Override
             public void run() {
                 lamrimLabel.setEnabled(true);
                 subtitleLabel.setEnabled(false);
+                searchFrom.setEnabled(false);
                 sw.setProgress(0);
                 searchLastBtn.setVisibility(View.VISIBLE);
                 searchNextBtn.setOnClickListener(onSearchLamrimListener);
                 searchLastBtn.setOnClickListener(onSearchLamrimListener);
                 subtitleSearchList.setVisibility(View.GONE);
-                isSearchLamrim = true;
-                runtimeEditor.putBoolean("isLastSearchLamrim", isSearchLamrim);
+                runtimeEditor.putBoolean("isLastSearchLamrim", true);
                 runtimeEditor.commit();
             }
         };
-
 
         final Runnable swToSearchSubtitle = new Runnable() {
             @Override
             public void run() {
                 lamrimLabel.setEnabled(false);
                 subtitleLabel.setEnabled(true);
+                searchFrom.setEnabled(true);
                 sw.setProgress(1);
                 searchLastBtn.setVisibility(View.GONE);
                 searchNextBtn.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (searchInput.getText().toString().length() == 0) return;
+                        String str = searchInput.getText().toString();
+                        if (str.length() == 0) return;
+                        if (str.length() < 2) {
+                            Util.showErrorToast(LamrimReaderActivity.this, getString(R.string.msgSearchStrLenMustMoreThen2));
+                            return;
+                        }
+                        long lastSearchTime = runtime.getLong(getString(R.string.lastSearchTimeKey), 0);
+                        if (System.currentTimeMillis() - lastSearchTime < getResources().getInteger(R.integer.netSearchInterval)) // Click search too short time.
+                            return;
+
+                        // Save the time for check next button fire.
+                        runtimeEditor.putLong(getString(R.string.lastSearchTimeKey), System.currentTimeMillis());
+                        runtimeEditor.apply();
+
                         subtitleSearchList.setEnabled(false);
                         subtitleSearchList.setSelectionAfterHeaderView();
-//							subtitleSearchList.setVisibility(View.GONE);
-                        showSearchSubtitleDialog(searchInput.getText().toString());
+
+                        if (!searchFrom.isChecked()) {
+                            showSearchSubtitleDialog(searchView, Util.simpToTradChar(LamrimReaderActivity.this, str));
+                        } else {
+                            // Search from Lamrim Search Service.
+                            searchNextBtn.setEnabled(false);
+                            searchFromHost(searchView, Util.simpToTradChar(LamrimReaderActivity.this, str));
+                        }
                     }
                 });
                 searchLastBtn.setOnClickListener(null);
                 if (subtitleSearchList.getAdapter() != null)
                     subtitleSearchList.setVisibility(View.VISIBLE);
-                isSearchLamrim = false;
-                runtimeEditor.putBoolean("isLastSearchLamrim", isSearchLamrim);
+                runtimeEditor.putBoolean("isLastSearchLamrim", false);
                 runtimeEditor.commit();
             }
         };
@@ -2626,13 +2860,21 @@ public class LamrimReaderActivity extends AppCompatActivity {
             }
         });
 
+        searchFrom.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Log.d(logTag, "User change the state of CheckBox [searchFrom].");
+                runtimeEditor.putBoolean(getString(R.string.searchFromKey), isChecked);
+                runtimeEditor.commit();
+            }
+        });
 
         // 回存最後搜尋的字串
         String lastSearch = runtime.getString(getString(R.string.lastSearchLamrimKey), "");
         searchInput.setText(lastSearch);
 
         // 回存最後的搜尋目標狀態
-        isSearchLamrim = runtime.getBoolean("isLastSearchLamrim", true);
+        boolean isSearchLamrim = runtime.getBoolean("isLastSearchLamrim", true);
         if (isSearchLamrim) {
             sw.setProgress(0);
             swToSearchLamrim.run();
@@ -2640,6 +2882,10 @@ public class LamrimReaderActivity extends AppCompatActivity {
             sw.setProgress(1);
             swToSearchSubtitle.run();
         }
+
+        // 回存從何處取得資料CheckBox 善知識
+        Boolean searchFromNet = runtime.getBoolean(getString(R.string.searchFromKey), true);
+        searchFrom.setChecked(searchFromNet);
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         //AlertDialog searchDialog = builder.create();
@@ -2664,17 +2910,25 @@ public class LamrimReaderActivity extends AppCompatActivity {
         });
     }
 
-
-
-
     class SearchListener implements OnClickListener {
         int index[] = {-1, -1, -1};
         String lastSearchStr = null;
+        ImageButton searchLastBtn, searchNextBtn;
+        EditText searchInput;
+
+        public SearchListener(ImageButton searchLastBtn, ImageButton searchNextBtn, EditText searchInput) {
+            this.searchLastBtn = searchLastBtn;
+            this.searchNextBtn = searchNextBtn;
+            this.searchInput = searchInput;
+        }
 
         @Override
         public void onClick(View v) {
+            // Disable all button avoid mistake.
             searchLastBtn.setEnabled(false);
             searchNextBtn.setEnabled(false);
+
+            // If no input stream skip.
             if (searchInput.getText().toString().length() == 0) {
                 Log.d(getClass().getName(), "User input length = 0, skip search");
                 searchLastBtn.setEnabled(true);
@@ -2684,8 +2938,6 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
             final String str = searchInput.getText().toString();
             boolean isFirstSearch = (lastSearchStr == null);
-            //String lastSearchInView=bookView.getHighlightWord();
-
 
             if (isFirstSearch || !lastSearchStr.equals(str)) {
                 Log.d(getClass().getName(), "It is first search.");
@@ -2700,21 +2952,21 @@ public class LamrimReaderActivity extends AppCompatActivity {
                     index[2]++;
                     Log.d(getClass().getName(), "Change start word from " + index[2]);
                     Log.d(getClass().getName(), "Search Next " + str + " from Page " + index[0] + " Line " + index[1] + " word " + index[2]);
-                    result = bookView.searchNext(index[0], index[1], index[2], str);
+                    result = bookView.searchNext(index[0], index[1], index[2], Util.simpToTradChar(LamrimReaderActivity.this, str));
                 } else {
                     index[2]--;
                     Log.d(getClass().getName(), "Change start word from " + index[2]);
                     Log.d(getClass().getName(), "Search Last " + str + " from Page " + index[0] + " Line " + index[1] + " word " + index[2]);
                     if (isFirstSearch) {
                         int linearIndex = MyListView.getContentStr(index[0], 0, MyListView.TO_END).length();
-                        result = bookView.searchLast(index[0], 0, linearIndex, str); // It will set -1 to index[2] on first time search.
+                        result = bookView.searchLast(index[0], 0, linearIndex, Util.simpToTradChar(LamrimReaderActivity.this, str)); // It will set -1 to index[2] on first time search.
                     } else
-                        result = bookView.searchLast(index[0], index[1], index[2], str); // It will set -1 to index[2] on first time search.
+                        result = bookView.searchLast(index[0], index[1], index[2], Util.simpToTradChar(LamrimReaderActivity.this, str)); // It will set -1 to index[2] on first time search.
                 }
 
                 if (result == null) {
                     Log.d(getClass().getName(), "Not found.");
-                    Util.showInfoPopupWindow(LamrimReaderActivity.this, searchInput, "尋無該詞。");
+                    Util.showInfoToast(LamrimReaderActivity.this, getString(R.string.msgSearchNotFound));
                     searchLastBtn.setEnabled(true);
                     searchNextBtn.setEnabled(true);
                     return;
@@ -2846,9 +3098,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
         int end = mediaEnd;
         int intentCmd[] = null;
         if (start == end) {
-            File media = fsm.getLocalMediaFile(start);
-            File subtitle = fsm.getLocalSubtitleFile(start);
-            if (media == null || subtitle == null || !media.exists() || !subtitle.exists())
+            if (!fsm.isFilesReady(start))
                 intentCmd = new int[]{start};
         } else
             intentCmd = fsm.getUnreadyList(start, end);
@@ -2958,10 +3208,10 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
     // ======================= For Render mode ======================================
     private void showRenderModeFirstLevelMenu() {
-        String[] menuStr = {"離開公播模式", "一般選單", "設定選單"};
+        String[] menuStr = {getString(R.string.leaveRenderMode), getString(R.string.normalMenu), getString(R.string.settingMenu)};
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(LamrimReaderActivity.this);
         builderSingle.setIcon(R.drawable.ic_launcher);
-        builderSingle.setTitle("功能選單").setItems(menuStr, new DialogInterface.OnClickListener() {
+        builderSingle.setTitle(getString(R.string.menuTitle)).setItems(menuStr, new DialogInterface.OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -2982,25 +3232,26 @@ public class LamrimReaderActivity extends AppCompatActivity {
     }
 
     private void showRenderModeNormalMenu() {
-        String[] menuStr = {getString(R.string.menuStrSelectSpeech), getString(R.string.globalLamrim), getString(R.string.menuStrPlayRegionRec), "離開公播模式", getString(R.string.menuStrOpenProjectWeb), getString(R.string.exitApp)};
+        //String[] menuStr = {getString(R.string.menuStrSelectSpeech), getString(R.string.globalLamrim), getString(R.string.menuStrPlayRegionRec), getString(R.string.leaveRenderMode), getString(R.string.menuStrOpenProjectWeb), getString(R.string.exitApp)};
+        String[] menuStr = {getString(R.string.menuStrSelectSpeech), getString(R.string.menuStrPlayRegionRec), getString(R.string.leaveRenderMode), getString(R.string.menuStrOpenProjectWeb), getString(R.string.exitApp)};
 
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(LamrimReaderActivity.this);
         builderSingle.setIcon(R.drawable.ic_launcher);
-        builderSingle.setTitle("一般選單").setItems(menuStr, new DialogInterface.OnClickListener() {
+        builderSingle.setTitle(getString(R.string.menuTitle)).setItems(menuStr, new DialogInterface.OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (which == 0) startSpeechMenuActivity();
-                else if (which == 1) startGlobalLamrimCalendarActivity();
-                else if (which == 2) {
+                //else if (which == 1) startGlobalLamrimCalendarActivity();
+                else if (which == 1) {
                     if (RegionRecord.records.size() == 0) {
-                        Util.showInfoPopupWindow(LamrimReaderActivity.this, findViewById(R.id.rootLayout), "沒有區段記錄，請先記錄區段。");
+                        Util.showInfoToast(LamrimReaderActivity.this, getString(R.string.recSecFirst));
                         return;
                     }
                     showRecordListPopupMenu();
-                } else if (which == 3) switchMainView();
-                else if (which == 4) startProjectWebUrl();
-                else if (which == 5) onBackPressed();
+                } else if (which == 2) switchMainView();
+                else if (which == 3) startProjectWebUrl();
+                else if (which == 4) onBackPressed();
                 else Log.d(getClass().getName(), "There is a non exist menu option been selected.");
             }
         });
@@ -3019,10 +3270,10 @@ public class LamrimReaderActivity extends AppCompatActivity {
     }
 
     private void shwoRenderModeOptMenu() {
-        String[] menuStr = {"顯示/隱藏模式切換鍵", "選擇圖片", "圖片擴展方式", "圖片背景顏色", "字幕顏色", "字幕背景顏色", "字幕背景透明度", "回到原始設定"};
+        String[] menuStr = getResources().getStringArray(R.array.SettingsMenuItem);
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(LamrimReaderActivity.this);
         builderSingle.setIcon(R.drawable.ic_launcher);
-        builderSingle.setTitle("功能選單").setItems(menuStr, new DialogInterface.OnClickListener() {
+        builderSingle.setTitle(getString(R.string.menuTitle)).setItems(menuStr, new DialogInterface.OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -3066,12 +3317,11 @@ public class LamrimReaderActivity extends AppCompatActivity {
         runtimeEditor.commit();
     }
 
-    final String scaleStr[] = {"等比擴展填滿置中", "等比擴展全圖顯示置中", "不按比例完全擴展", "等比縮放置上", "等比縮放置中", "等比縮放置底", "不縮放置中", "向量"};
-
     private void showScaleTypeDialog() {
+        final String scaleStr[] = getResources().getStringArray(R.array.PicsMenuItem);
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(LamrimReaderActivity.this);
         builderSingle.setIcon(R.drawable.ic_launcher);
-        builderSingle.setTitle("選擇擴展方式")
+        builderSingle.setTitle(getString(R.string.picsExtOpt))
                 .setItems(scaleStr, new DialogInterface.OnClickListener() {
 
                     @Override
@@ -3134,9 +3384,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
     // ================ For option menu =====================
 
     private void showRenderModeWarring() {
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this).setTitle("警告").setIcon(android.R.drawable.ic_dialog_alert)
-                .setMessage("此模式畫面上沒有選單按鍵！\n必須透過\"按住圖片\"才能叫出選單。\n重開廣論App後會回到正常模式。");
-        builderSingle.setPositiveButton("確定", null);
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this).setTitle(getString(R.string.msgWarring)).setIcon(android.R.drawable.ic_dialog_alert)
+                .setMessage(getString(R.string.msgLongPressShowMenu));
+        builderSingle.setPositiveButton(getString(R.string.dlgOk), null);
         builderSingle.setCancelable(false);
         builderSingle.show();
     }
@@ -3155,8 +3405,8 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
     private void selectRenderImage() {
         Intent fgIntent = new Intent(getBaseContext(), FileDialogActivity.class);
-        fgIntent.putExtra(FileDialogActivity.TITLE, "請選擇圖片檔案");
-        fgIntent.putExtra(FileDialogActivity.START_PATH, "/sdcard");
+        fgIntent.putExtra(FileDialogActivity.TITLE, getString(R.string.msgSelectPic));
+        fgIntent.putExtra(FileDialogActivity.START_PATH, Environment.getExternalStorageDirectory().getPath());
         //can user select directories or not
         fgIntent.putExtra(FileDialogActivity.CAN_SELECT_DIR, false);
         fgIntent.putExtra(FileDialogActivity.SELECTION_MODE, FileDialogActivity.MODE_OPEN);
@@ -3258,15 +3508,12 @@ public class LamrimReaderActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
+            public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this).setTitle("請輸選擇透明度").setIcon(android.R.drawable.ic_dialog_info).setView(seekBar);
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(this).setTitle(getString(R.string.msgAlphaOpt)).setIcon(android.R.drawable.ic_dialog_info).setView(seekBar);
         builderSingle.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
@@ -3332,11 +3579,12 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
         // Adjust the height of subtitleView, avoid the modeSwBtn over the window.
         int maxHeight = (int) (rootLayout.getHeight() - modeSwBtn.getHeight()) - mpController.getControllerView().getHeight();
-        if(subtitleView.getHeight()>maxHeight)subtitleView.setHeight(maxHeight);
+        if (subtitleView.getHeight() > maxHeight) subtitleView.setHeight(maxHeight);
 
     }
-    private void hideMediaController(boolean isForce){
-        if(isForce || !mpController.isShowLongTerm())
+
+    private void hideMediaController(boolean isForce) {
+        if (isForce || !mpController.isShowLongTerm())
             mpController.hideMediaPlayerController();
     }
 
@@ -3345,6 +3593,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
         Animation animation = (Animation) AnimationUtils.loadAnimation(this, R.anim.rotate);
         v.startAnimation(animation);
     }
+
 
     class SubtitleSearchAdapter extends SimpleAdapter {
         public SubtitleSearchAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
@@ -3365,7 +3614,6 @@ public class LamrimReaderActivity extends AppCompatActivity {
             TextView text = (TextView) row.findViewById(R.id.text);
             TextView info = (TextView) row.findViewById(R.id.info);
             try {
-
                 SubtitleSearchIndex ssi = subtitleSearchResult.get(position);
                 String speechName = SpeechData.getNameId(ssi.mediaIndex);
                 SubtitleElement subtitle = subtitleSearch[ssi.mediaIndex].getSubtitle(ssi.getSubtitleIndex());
@@ -3413,6 +3661,80 @@ public class LamrimReaderActivity extends AppCompatActivity {
 
         public int getTextIndex() {
             return data[1];
+        }
+    }
+
+    class RemoteSubtitleSearchAdapter extends SimpleAdapter {
+        ArrayList<RemoteSubtitleSearchIndex> searchResult = null;
+
+        public RemoteSubtitleSearchAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
+            super(context, data, resource, from, to);
+        }
+
+        public void setSubtitleSearchIndex(ArrayList<RemoteSubtitleSearchIndex> searchResult) {
+            this.searchResult = searchResult;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            View row = convertView;
+            if (row == null) {
+                Log.d(getClass().getName(), "row=null, construct it.");
+                LayoutInflater inflater = getLayoutInflater();
+                row = inflater.inflate(R.layout.subtitle_search_result_row, parent, false);
+                ((TextView) row.findViewById(R.id.text)).setTypeface(Util.getFont(LamrimReaderActivity.this, runtime));
+                //((TextView)row.findViewById(R.id.info)).setTypeface(educFont);
+            }
+            TextView serial = (TextView) row.findViewById(R.id.serial);
+            TextView text = (TextView) row.findViewById(R.id.text);
+            TextView info = (TextView) row.findViewById(R.id.info);
+            try {
+
+                RemoteSubtitleSearchIndex ssi = searchResult.get(position);
+                String speechName = SpeechData.getNameId(ssi.mediaIndex);
+
+                // 順序數列，紫色
+                String serialStr = " " + (position + 1) + ". ";
+                SpannableString str = new SpannableString(serialStr);
+                str.setSpan(new ForegroundColorSpan(Color.MAGENTA), 0, serialStr.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                serial.setText(str);
+
+                // 字幕字串
+                str = new SpannableString(ssi.subtitleText);
+                int textColor = getResources().getColor(R.color.subtitleRedingModeHilightColor);
+                str.setSpan(new ForegroundColorSpan(textColor), ssi.indexOfSubtitle, ssi.indexOfSubtitle + ssi.lengthOfSearchStr, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                text.setText(str);
+
+                // 資訊列
+                str = new SpannableString(speechName + ":" + Util.getMsToHMS(ssi.startTime, ":", "", true) + " #" + (ssi.subtitleSerialNum + 1));
+                str.setSpan(new ForegroundColorSpan(Color.CYAN), 0, speechName.length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                info.setTextSize(TypedValue.COMPLEX_UNIT_PX, (float) (text.getTextSize() * 0.9));
+                info.setText(str);
+            } catch (IndexOutOfBoundsException ioobe) {
+                ioobe.printStackTrace();
+            }
+            return row;
+        }
+    }
+
+
+
+    class RemoteSubtitleSearchIndex {
+        //{"searchString":"ab","count":1,"list":[{"subSerlNum":523,"startTime":1440943,"textIndex":6,"text":"如果英文叫table，那沒關係，","mediaId":294}],"spendTime":1}
+        public int mediaIndex, subtitleSerialNum, startTime;
+        public String subtitleText;
+        public int indexOfSubtitle, lengthOfSearchStr;
+        //int[] data; // 文字位於哪一個字幕([0]), 以及是該字幕文字中的第幾個字([1]).
+        //public int mediaIndex;// 音檔編號
+        //public int length; // 搜尋文字的長度,如[善知識]=3
+
+        public RemoteSubtitleSearchIndex(int mediaId, int subSerialNum, int startTime, String subtitleText, int indexOfSubtitle, int lenOfSearchStr) {
+            this.mediaIndex = mediaId;
+            this.subtitleSerialNum = subSerialNum;
+            this.startTime = startTime;
+            this.subtitleText = subtitleText;
+            this.indexOfSubtitle = indexOfSubtitle;
+            this.lengthOfSearchStr = lenOfSearchStr;
         }
     }
 
@@ -3484,7 +3806,7 @@ public class LamrimReaderActivity extends AppCompatActivity {
             delButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    BaseDialogs.showDelWarnDialog(LamrimReaderActivity.this, "記錄", new DialogInterface.OnClickListener() {
+                    BaseDialogs.showDelWarnDialog(LamrimReaderActivity.this, getString(R.string.record), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             RegionRecord.removeRecord(LamrimReaderActivity.this, position);
@@ -3596,11 +3918,9 @@ public class LamrimReaderActivity extends AppCompatActivity {
         private void startLamrimSection(int index) {
             Log.d(getClass().getName(), "Switch to speech " + SpeechData.getTheoryName(index));
             hideMediaController(true);
-            File media = fsm.getLocalMediaFile(index);
-            File subtitle = fsm.getLocalSubtitleFile(index);
 
             // File not exist.
-            if (media == null || subtitle == null || !media.exists() || !subtitle.exists()) {
+            if (!fsm.isFilesReady(index)) {
                 final Intent speechMenu = new Intent(LamrimReaderActivity.this, SpeechMenuActivity.class);
                 speechMenu.putExtra("index", new int[]{index});
 //				if (wakeLock.isHeld())wakeLock.release();
@@ -3664,17 +3984,17 @@ public class LamrimReaderActivity extends AppCompatActivity {
         startPlay(media);
     }
 
-    public static void setInfoText(int playPosition){
-        if(infoTextView == null || infoTextView.getVisibility()==View.GONE)return;
-        String infoText=infoTextView.getText().toString();
-        int sec=infoText.indexOf(',');
-        String timeStr=Util.getMsToHMS(playPosition,"分","秒, 字幕序: #",true);
-        final String outputText=timeStr+subtitleIndex;
+    public static void setInfoText(int playPosition) {
+        if (infoTextView == null || infoTextView.getVisibility() == View.GONE) return;
+        String infoText = infoTextView.getText().toString();
+        int sec = infoText.indexOf(',');
+        String timeStr = Util.getMsToHMS(playPosition, "分", "秒, 字幕序: #", true);
+        final String outputText = timeStr + subtitleIndex;
         infoTextView.post(new Runnable() {
             @Override
             public void run() {
                 infoTextView.setText(outputText);
- //               modeSwBtn.setText(outputText);
+                //               modeSwBtn.setText(outputText);
             }
         });
 

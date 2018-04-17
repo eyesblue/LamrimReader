@@ -32,8 +32,7 @@
                     android:layout_width="0dip"
                     android:layout_height="wrap_content"
                     android:layout_weight=".3"
-                    android:text="@string/nnew" >
-                </Button>
+                    android:text="@string/nnew"></Button>
 
                 <Button
                     android:id="@+id/fdButtonSelect"

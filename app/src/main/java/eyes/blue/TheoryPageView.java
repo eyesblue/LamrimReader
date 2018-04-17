@@ -25,7 +25,7 @@ import android.widget.TextView;
 public class TheoryPageView extends TextView {
 	Context context;
 	boolean onCmd=false;
-	final static boolean debug=true;
+	final static boolean debug=false;
 
 	Dot[] dots=new Dot[100];
 	int textColor, highColorWord,highColorLine,bgColor,numTextColor,boldColor,dotTextColor;
@@ -104,19 +104,19 @@ public class TheoryPageView extends TextView {
 	 * Set highlight to whole line, from startLine to endLine, assign -1 to endLine that mean to whole end of line, if you want clear highlight call setText(String text).
 	 * */
 	public void setHighlightLine(int startLine, int endLine){
-		Log.d(getClass().getName(),"get setHighlightLine call: startLine="+startLine+", endLine="+endLine);
+		if(debug)Log.d(getClass().getName(),"get setHighlightLine call: startLine="+startLine+", endLine="+endLine);
 		SpannableStringBuilder text=new SpannableStringBuilder(getText());
 		String str=text.toString();
 		String[] lines = str.split("\n");
 		if(endLine==-1){
 			endLine=lines.length-1;
-			Log.d(getClass().getName(),"highlight to end: "+endLine);
+			if(debug)Log.d(getClass().getName(),"highlight to end: "+endLine);
 		}
 		int wordCounter=0;
 		
 		for(int i=0;i<lines.length;i++){
 			if(i>=startLine && i<=endLine){
-				Log.d(getClass().getName(),"highlight: start="+wordCounter+", end="+wordCounter+lines[i].length());
+				if(debug)Log.d(getClass().getName(),"highlight: start="+wordCounter+", end="+wordCounter+lines[i].length());
 				text.setSpan(new BackgroundColorSpan(highColorLine), wordCounter, wordCounter+lines[i].length(), Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
 			}
 			wordCounter+=lines[i].length()+1;

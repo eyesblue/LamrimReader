@@ -27,7 +27,6 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
-import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -35,16 +34,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutCompat;
-import android.text.InputType;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,21 +48,23 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
+
+import eyes.blue.RemoteDataSource.RemoteSource;
 
 public class SpeechMenuActivity extends AppCompatActivity {
 	String logTag=getClass().getName();
 	FileSysManager fsm=null;
 	ImageButton btnDownloadAll, btnMaintain,  btnManageStorage;
 	TextView downloadAllTextView;
-	boolean speechFlags[], subtitleFlags[]=null;
+	boolean speechFlags[];//, subtitleFlags[]=null;
 	String[] descs, subjects, rangeDescs;
 	ArrayList<HashMap<String,Boolean>> fakeList = new ArrayList<HashMap<String,Boolean>>();
 	SimpleAdapter adapter=null;
@@ -79,7 +76,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 	int manageItemIndex=-1;
 	SingleDownloadThread downloader = null;
 	boolean fireLockKey = false;
-	final int PLAY=0,UPDATE=1,	DELETE=2, CANCEL=3;
+	final int PLAY=0,UPDATE=1,	DELETE=2, DOWNLOAD=3, CANCEL=4, SRC1=5, SRC2=6;
 	boolean isCallFromDownloadCmd=false;
 	ProgressDialog pd = null;
 	AlertDialog netAccessWarnDialog;
@@ -114,13 +111,13 @@ public class SpeechMenuActivity extends AppCompatActivity {
 		fsm=new FileSysManager(this);
 		pd= getDlprgsDialog();
 
-		final QuickAction mQuickAction = new QuickAction(this);
-		mQuickAction.addActionItem(new ActionItem(PLAY, getString(R.string.dlgManageSrcPlay), getResources().getDrawable(R.drawable.play)));
-		mQuickAction.addActionItem(new ActionItem(UPDATE, getString(R.string.dlgManageSrcUpdate), getResources().getDrawable(R.drawable.update)));
-		mQuickAction.addActionItem(new ActionItem(DELETE, getString(R.string.dlgManageSrcDel), getResources().getDrawable(R.drawable.delete)));
-		mQuickAction.addActionItem(new ActionItem(CANCEL, getString(R.string.dlgCancel), getResources().getDrawable(R.drawable.return_sign)));
+		final QuickAction fileReadyQAction = new QuickAction(this);
+		fileReadyQAction.addActionItem(new ActionItem(PLAY, getString(R.string.dlgManageSrcPlay), getResources().getDrawable(R.drawable.ic_media_play)));
+		fileReadyQAction.addActionItem(new ActionItem(UPDATE, getString(R.string.dlgManageSrcUpdate), getResources().getDrawable(R.drawable.ic_update)));
+		fileReadyQAction.addActionItem(new ActionItem(DELETE, getString(R.string.dlgManageSrcDel), getResources().getDrawable(R.drawable.ic_delete)));
+		fileReadyQAction.addActionItem(new ActionItem(CANCEL, getString(R.string.dlgCancel), getResources().getDrawable(R.drawable.ic_return)));
 	
-		mQuickAction.setOnActionItemClickListener(new QuickAction.OnActionItemClickListener() {
+		fileReadyQAction.setOnActionItemClickListener(new QuickAction.OnActionItemClickListener() {
 			@Override
 			public void onItemClick(QuickAction quickAction, int pos, int actionId) {
 				switch(actionId){
@@ -135,28 +132,23 @@ public class SpeechMenuActivity extends AppCompatActivity {
 							final ProgressDialog pd= new ProgressDialog(SpeechMenuActivity.this);
 							File f=fsm.getLocalMediaFile(manageItemIndex);
 							if(f!=null && !fsm.isFromUserSpecifyDir(f))f.delete();
-							f=fsm.getLocalSubtitleFile(manageItemIndex);
-							if(f!=null)f.delete();
 							downloadSrc(manageItemIndex);
 							Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "QUICK_ACTION_MENU_UPDATE");
 						}};
 
-					BaseDialogs.showDelWarnDialog(SpeechMenuActivity.this, "檔案", updateListener, null);
+					BaseDialogs.showDelWarnDialog(SpeechMenuActivity.this, getString(R.string.file), updateListener, null);
 					break;
 				case DELETE:
 					DialogInterface.OnClickListener deleteListener=new DialogInterface.OnClickListener(){
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							final ProgressDialog pd= new ProgressDialog(SpeechMenuActivity.this);
 							File f=fsm.getLocalMediaFile(manageItemIndex);
 							if(f!=null && !fsm.isFromUserSpecifyDir(f))f.delete();
-							f=fsm.getLocalSubtitleFile(manageItemIndex);
-							if(f!=null)f.delete();
 							updateUi(manageItemIndex,true);
 							Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "QUICK_ACTION_MENU_DELETE");
 						}};
 
-					BaseDialogs.showDelWarnDialog(SpeechMenuActivity.this, "檔案", deleteListener, null);
+					BaseDialogs.showDelWarnDialog(SpeechMenuActivity.this, getString(R.string.file), deleteListener, null);
 					break;
 				case CANCEL:
 					Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "QUICK_ACTION_MENU_CANCEL");
@@ -165,12 +157,33 @@ public class SpeechMenuActivity extends AppCompatActivity {
 			}
 		});
 
-		mQuickAction.setOnDismissListener(new QuickAction.OnDismissListener() {
+		final QuickAction fileNotReadyQAction = new QuickAction(this);
+		fileNotReadyQAction.addActionItem(new ActionItem(DOWNLOAD, getString(R.string.dlgManageSrcDL), getResources().getDrawable(R.drawable.ic_download)));
+		fileNotReadyQAction.addActionItem(new ActionItem(CANCEL, getString(R.string.dlgCancel), getResources().getDrawable(R.drawable.ic_return)));
+		fileNotReadyQAction.setOnActionItemClickListener(new QuickAction.OnActionItemClickListener() {
 			@Override
-			public void onDismiss() {
-				//Toast.makeText(getApplicationContext(), "Ups..dismissed", Toast.LENGTH_SHORT).show();
-			}
-		});
+			public void onItemClick(QuickAction quickAction, int pos, int actionId) {
+				switch(actionId){
+					case DOWNLOAD:
+						downloadSrc(manageItemIndex);
+						break;
+					case CANCEL:
+						break;
+				}
+			}});
+
+		final QuickAction downloadAllRemoteSelect = new QuickAction(this);
+		for(int i=0;i<Util.getRemoteSource(this).length;i++)
+			downloadAllRemoteSelect.addActionItem(new ActionItem(i, Util.getRemoteSource(this)[i].getName(), getResources().getDrawable(R.drawable.ic_global_lamrim)));
+
+		downloadAllRemoteSelect.setOnActionItemClickListener(new QuickAction.OnActionItemClickListener() {
+			@Override
+			public void onItemClick(QuickAction quickAction, int pos, int actionId) {
+				SharedPreferences.Editor editor=runtime.edit();
+				editor.putInt(getString(R.string.remoteSrcIndexKey),actionId);
+				editor.commit();
+			}});
+
 
 		String infos[]=getResources().getStringArray(R.array.desc);
 		descs=new String[infos.length];
@@ -185,7 +198,6 @@ public class SpeechMenuActivity extends AppCompatActivity {
 		}
 
 		speechFlags=new boolean[SpeechData.name.length];
-		subtitleFlags=new boolean[SpeechData.name.length];
 
 		// Initial fakeList
 		HashMap<String,Boolean> fakeItem = new HashMap<String,Boolean>();
@@ -219,15 +231,11 @@ public class SpeechMenuActivity extends AppCompatActivity {
 		speechList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View v,int position, long id) {
-				// If there is no speech file, nor subtitle file, don't show the manage dialog.
-				if(!speechFlags[position]&&!subtitleFlags[position])
-					return false;
 				manageItemIndex=position;
-				mQuickAction.show(v);
+				if(speechFlags[position]) fileReadyQAction.show(v);
+				else fileNotReadyQAction.show(v);
+
 				Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "SHOW_QUICK_ACTION_MENU");
-				//itemManageDialog=getItemManageDialog(position);
-				//itemManageDialog.show();
-	//			if(!wakeLock.isHeld()){wakeLock.acquire();}
 				return true;
 			}
 
@@ -335,7 +343,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 		int position=playRecord.getInt("playPosition",-1);
 		if(mediaIndex != -1){
 			MenuItem item=menu.add(getString(R.string.reloadLastState)+": "+SpeechData.getSubtitleName(mediaIndex)+": "+Util.getMsToHMS(position, "\"", "\'", false));
-			item.setIcon(R.drawable.reload_last_state);
+			item.setIcon(R.drawable.ic_reload_last_state);
 			MenuItemCompat.setShowAsAction(item, MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 			return super.onCreateOptionsMenu(menu);
 		}
@@ -371,10 +379,8 @@ public class SpeechMenuActivity extends AppCompatActivity {
 	
 	private void updateUi(final int i, boolean shiftToIndex){
 		File speech=fsm.getLocalMediaFile(i);
-		File subtitle =fsm.getLocalSubtitleFile(i);
-		
 		speechFlags[i]=(speech!=null && speech.exists());
-		subtitleFlags[i]=(subtitle!=null && subtitle.exists());
+
 		if(shiftToIndex){
 			refreshListView();
 			speechList.post(new Runnable(){
@@ -396,24 +402,16 @@ public class SpeechMenuActivity extends AppCompatActivity {
 			}});
 		}
 	}
-	
+
+	// 從頭掃描一次確認音檔是否存在
 	private void refreshFlags(final int start,final int end,final boolean isRefreshView){
 		Log.d(getClass().getName(), "Refresh flags: start="+start+", end="+end);
 		Thread t=new Thread(new Runnable(){
 			@Override
 			public void run() {
 				for(int i=start;i<end;i++){
-					File speech=fsm.getLocalMediaFile(i);
-					File subtitle=fsm.getLocalSubtitleFile(i);
-					boolean me=(speech!=null && speech.exists() && speech.canRead());
-					boolean se=(subtitle!=null && subtitle.exists());
-//					Log.d(getClass().getName(), "Set flags of "+SpeechData.getNameId(i)+": is speech exist: "+me+", is subtitle exist: "+se);
 					synchronized(speechFlags){
-						speechFlags[i]=me;
-					}
-					
-					synchronized(subtitleFlags){
-						subtitleFlags[i]=se;
+						speechFlags[i]=(fsm.isFilesReady(i));
 					}
 				}
 				if(isRefreshView)refreshListView();
@@ -442,10 +440,9 @@ public class SpeechMenuActivity extends AppCompatActivity {
 		Log.d("SpeechMenuActivity", "downloadSrc been call.");
 		for(int i=0;i<index.length;i++){
 			File mediaFile=fsm.getLocalMediaFile(index[i]);
-			File subtitleFile=fsm.getLocalSubtitleFile(index[i]);
 		
-			if(mediaFile==null || subtitleFile==null){
-				Util.showErrorPopupWindow(SpeechMenuActivity.this, findViewById(R.id.speechMenuRootView),"下載失敗！請確認儲存空間是否足夠，或您的網路連線是否正常。");
+			if(mediaFile==null){
+				Util.showErrorToast(SpeechMenuActivity.this, getString(R.string.dlgDescDownloadFail));
 				return;
 			}
 		}
@@ -551,7 +548,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 //			v.setLayoutParams(layoutParam);
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("請選擇同時下載連線數(越多越快，網路越壅塞)：");
+		builder.setTitle(getString(R.string.msgSelectThread));
 		builder.setView(layout);
 
 		builder.setPositiveButton(getString(R.string.dlgOk), new DialogInterface.OnClickListener() {
@@ -645,12 +642,12 @@ public class SpeechMenuActivity extends AppCompatActivity {
 	};
 	
 	private void updateDownloadAllBtn(){
-		btnDownloadAll.post(new Runnable(){
+		btnDownloadAll.postDelayed(new Runnable(){
 			@Override
 			public void run() {
 				boolean isAlive=isMyServiceRunning(DownloadAllService.class);
 				if(!isAlive){
-					downloadAllTextView.setText("全部下載");
+					downloadAllTextView.setText(getString(R.string.btnDownloadAll));
 					btnDownloadAll.setOnClickListener(new View.OnClickListener (){
 						@Override
 						public void onClick(View arg0) {
@@ -662,7 +659,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 						}});
 				}
 				else {
-					downloadAllTextView.setText("取消下載");
+					downloadAllTextView.setText(getString(R.string.btnCancle));
 					btnDownloadAll.setOnClickListener(new View.OnClickListener (){
 						@Override
 						public void onClick(View arg0) {
@@ -677,7 +674,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 					}});
 				}
 			}
-		});
+		},500);
 		
 		
 	}
@@ -721,14 +718,14 @@ public class SpeechMenuActivity extends AppCompatActivity {
 				updateDownloadAllBtn();
 			}
 			else if(action.equalsIgnoreCase("error")){
-				Util.showErrorPopupWindow(SpeechMenuActivity.this, findViewById(R.id.speechMenuRootView), intent.getStringExtra("desc"));
+				Util.showErrorToast(SpeechMenuActivity.this, intent.getStringExtra("desc"));
 			}
 		}
 	}
 	
 	private ProgressDialog getDlprgsDialog(){
 		pd=new ProgressDialog(this);
-		pd.setTitle("廣論資源下載");
+		pd.setTitle(getString(R.string.dlgResDownload));
 		pd.setMessage("");
 		pd.setCancelable(true);
 		pd.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.dlgCancel), new DialogInterface.OnClickListener() {
@@ -855,48 +852,12 @@ public class SpeechMenuActivity extends AppCompatActivity {
 			TextView subject = (TextView) row.findViewById(R.id.subject);
 			TextView speechDesc = (TextView) row.findViewById(R.id.speechDesc);
 			TextView rangeDesc = (TextView) row.findViewById(R.id.rangeDesc);
-		//	ImageView mediaSign = (ImageView) row.findViewById(R.id.mediaSign);
-		//	ImageView subtitleSign = (ImageView) row.findViewById(R.id.subtitleSign);
 
-	/*		if(speechFlags[position]){
-				Log.d(getClass().getName(), "Set media sign to enable");
-				mediaSign.setEnabled(true);
-			}
-			else {
-				Log.d(getClass().getName(), "Set media sign to disable");
-				mediaSign.setEnabled(false);
-			}
+			if(speechFlags[position])
+				ApiLevelAdaptor.setBackground(row,getResources().getDrawable(R.drawable.speech_menu_item_e));
+			else
+				ApiLevelAdaptor.setBackground(row,getResources().getDrawable(R.drawable.speech_menu_item_d));
 
-			if(subtitleFlags[position]){
-				Log.d(getClass().getName(), "Set subtitle sign to enable");
-				subtitleSign.setEnabled(true);
-			}
-			else {
-				Log.d(getClass().getName(), "Set subtitle sign to enable");
-				subtitleSign.setEnabled(false);
-			}
-			*/
-			if(speechFlags[position]&&subtitleFlags[position]){
-//				title.setTextColor(Color.BLACK);
-//				subject.setTextColor(Color.BLACK);
-//				speechDesc.setTextColor(Color.BLACK);
-				//row.setBackgroundColor(0xFFFFFFDF);
-				if (Build.VERSION.SDK_INT >= 16)
-					row.setBackground(getResources().getDrawable(R.drawable.speech_menu_item_e));
-				else
-					row.setBackgroundDrawable(getResources().getDrawable(R.drawable.speech_menu_item_e));
-			}
-			else {
-//				title.setTextColor(Color.WHITE);
-//				subject.setTextColor(Color.WHITE);
-//				speechDesc.setTextColor(Color.GRAY);
-				//row.setBackgroundColor(Color.BLACK);
-				if (Build.VERSION.SDK_INT >= 16)
-					row.setBackground(getResources().getDrawable(R.drawable.speech_menu_item_d));
-				else
-					row.setBackgroundDrawable(getResources().getDrawable(R.drawable.speech_menu_item_d));
-			}
-			
 			title.setText(SpeechData.getNameId(position));
 			subject.setText(subjects[position]);
 			speechDesc.setText(descs[position]);
@@ -923,38 +884,27 @@ public class SpeechMenuActivity extends AppCompatActivity {
 		@Override
 		public void run(){
 			boolean hasFailure=false;
-			String locale = getResources().getConfiguration().locale.getCountry();
-	    	RemoteSource rs = null;
-			if(locale.equals("zh_CN")){
-		    	// If there exist the source download site in China.
-	    	}
-	    	else {rs = new GoogleRemoteSource(SpeechMenuActivity.this);}
+			RemoteSource rs = Util.getRemoteSource(SpeechMenuActivity.this)[0];
 			
 			for(int i=0;i<tasks.length;i++){
-				boolean mediaExist=false, subtitleExist=false;
-				File subtitleFile=fsm.getLocalSubtitleFile(tasks[i]);
+				boolean mediaExist=false;
 				File mediaFile=fsm.getLocalMediaFile(tasks[i]);
 				try{
-					subtitleExist=subtitleFile.exists();
 					mediaExist=mediaFile.exists();
 				}catch(NullPointerException npe){
 					Log.d(getClass().getName(),"The storage media has not usable, skip.");
-					Util.showErrorPopupWindow(SpeechMenuActivity.this, "儲存空間不足或無法使用儲存裝置，請檢查您的儲存裝置是否正常，或磁碟已被電腦連線所獨佔！");
+					Util.showErrorToast(SpeechMenuActivity.this, getString(R.string.errStorageNotReady));
 					Util.fireException("There is no storage available.", npe);
 					unlockScreen();
 					return;
 				}
-				if(!subtitleExist){
-					Log.d("DownloadAllService","The subtitle not exist, download to "+subtitleFile.getAbsolutePath());
-					subtitleExist=download(rs.getSubtitleFileAddress(tasks[i]),subtitleFile.getAbsolutePath(),tasks[i],getResources().getInteger(R.integer.SUBTITLE_TYPE));
-				}
 				
-				if(!mediaExist){
-					mediaExist=download(rs.getMediaFileAddress(tasks[i]),mediaFile.getAbsolutePath(),tasks[i],getResources().getInteger(R.integer.MEDIA_TYPE));
-				}
-				if(!subtitleExist || !mediaExist)hasFailure=true;
+				if(!mediaExist)
+					mediaExist = download(rs.getMediaFileAddress(tasks[i]), mediaFile.getAbsolutePath(), tasks[i], getResources().getInteger(R.integer.MEDIA_TYPE));
+
+				if(!mediaExist)hasFailure=true;
 			}
-			
+
 			unlockScreen();
 			
 			if(!hasFailure){
@@ -1012,7 +962,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 					try{
 						pd.setTitle(getResources().getString(R.string.dlgTitleConnecting));
 						pd.setMessage(String.format(getString(R.string.dlgDescConnecting), SpeechData.getNameId(mediaIndex),
-								(type == getResources().getInteger(R.integer.MEDIA_TYPE)) ? "音檔" : "字幕"));
+								(type == getResources().getInteger(R.integer.MEDIA_TYPE)) ? getString(R.string.typeAudio) : getString(R.string.typeSubtitle)));
 					}catch(Exception e){e.printStackTrace();}
 				}});
 			
@@ -1124,7 +1074,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 					try{
 						pd.setTitle(R.string.dlgTitleDownloading);
 						pd.setMessage(String.format(getString(R.string.dlgDescDownloading),	SpeechData.getNameId(mediaIndex),
-							(type == getResources().getInteger(R.integer.MEDIA_TYPE)) ? "音檔" : "字幕"));
+							(type == getResources().getInteger(R.integer.MEDIA_TYPE)) ? getString(R.string.typeAudio) : getString(R.string.typeSubtitle)));
 						pd.setMax((int) contentLength);
 					}catch(Exception e){e.printStackTrace();}
 				}});

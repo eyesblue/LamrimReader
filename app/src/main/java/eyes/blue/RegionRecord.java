@@ -100,7 +100,7 @@ public class RegionRecord {
 			return records;
 		}catch (Exception e) {
 			e.printStackTrace();
-			showErrToast(context,"讀取檔案時發生錯誤，無法讀取區段記錄！");
+			showErrToast(context, context.getString(R.string.errReadRecordFile));
 		}
 		return records;
 	}
@@ -123,11 +123,11 @@ public class RegionRecord {
 					osw.close();
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
-					showErrToast(activity,"同步檔案時發生錯誤，找不到檔案！");
+					showErrToast(activity, activity.getString(R.string.errSyncRecordFile));
 //					return null;
 				} catch (IOException e) {
 					e.printStackTrace();
-					showErrToast(activity,"讀取檔案時發生錯誤，無法讀取區段記錄！");
+					showErrToast(activity, activity.getString(R.string.errReadRecordFile));
 //					return null;
 				}
 //				return null;

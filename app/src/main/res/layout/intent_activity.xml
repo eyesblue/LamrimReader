@@ -6,11 +6,11 @@
     android:gravity="center">
 
     <TextView
-        android:text="努力載入中 ..."
+        android:id="@+id/msgView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/msgView"
         android:gravity="center"
+        android:text="@string/dlgLoadingHard"
         android:textSize="24sp" />
 
     <Button

@@ -25,7 +25,7 @@ public class MoveFileService extends IntentService {
 	final String logTag=getClass().getName();
 	public static final String NOTIFICATION = "eyes.blue.action.MoveFileService";
 	SharedPreferences runtime = null;
-	FileSysManager fsm=new FileSysManager(MoveFileService.this);
+//	FileSysManager fsm=new FileSysManager(MoveFileService.this);
 	PowerManager powerManager=null;
 	WakeLock wakeLock = null;
 	public static int notificationId=1;	// Always update notification but create new one.
@@ -72,7 +72,8 @@ public class MoveFileService extends IntentService {
 		float spend=(float)time/(float)1000;
 		String readAble=String.format(Locale.ENGLISH, "%.3f%n",spend);
 		Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "MOVE_FILE_TO_SPECIFY_FOLDER_FINISH");
-		notifyMsg("檔案搬移完成","共搬移 "+counter+" 個檔案，耗時 "+readAble+" 秒。");
+		notifyMsg(getString(R.string.msgMoveFileFinish), String.format(getString(R.string.msgMoveFileSummary), ""+counter, readAble));
+
 		Log.d(getClass().getName(),"Move File Service terminate.");
 	}
 
@@ -107,7 +108,7 @@ public class MoveFileService extends IntentService {
 			}
 
 			/* Copy To */
-			notifyMsg("移動檔案", "移動"+src.getName()+" 到 "+dist.getAbsolutePath());
+			notifyMsg(getString(R.string.dlgMoveFile), String.format(getString(R.string.msgMoveFromTo), src.getName(), dist.getAbsolutePath()));
 			if(src.renameTo(dist)){
 				counter++;
 				continue;
@@ -161,11 +162,11 @@ public class MoveFileService extends IntentService {
 		Intent bcIntent = new Intent();
 		bcIntent.setAction(NOTIFICATION);
 		bcIntent.putExtra("action", "error");
-		bcIntent.putExtra("desc", "無法使用儲存裝置或儲存空間不足，請檢查您的儲存裝置是否正常，或磁碟已被電腦連線所獨佔！");
+		bcIntent.putExtra("desc", getString(R.string.errStorageNotReady));
 		sendBroadcast(bcIntent); 
 		
 		//removeNotification();
-		notifyMsg("檔案搬移失敗","無法使用儲存裝置或儲存空間不足，請檢查您的儲存裝置是否正常，或磁碟已被電腦連線所獨佔！");
+		notifyMsg(getString(R.string.msgFileMoveFail), getString(R.string.errStorageNotReady));
 	}
 	
 	private void notifyMsg(String title, String contentText) {

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/LinearLayout1"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="left|center_vertical"
+    android:gravity="center|left"
+    style="AppTheme" >
+
+    <EditText
+        android:id="@+id/jumpPage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:ellipsize="start"
+        android:ems="3"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:imeOptions="actionGo"
+        android:inputType="numberDecimal"
+        android:maxLength="3"
+        android:numeric="integer"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:singleLine="true"
+        android:text="1">
+
+        <requestFocus />
+    </EditText>
+
+    <ImageView
+        android:id="@+id/rightBoundIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_volume" />
+
+    <SeekBar
+        android:id="@+id/volumeController"
+        style="@style/SeekBarholo"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:background="@drawable/btn_bg_press"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp" />
+
+    <ImageButton
+        android:id="@+id/textSize"
+        style="ButtonAppTheme"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:background="@drawable/btn_bg_press"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/ic_font_size" />
+
+    <ImageButton
+        android:id="@+id/search"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/btn_bg_press"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/ic_search" />
+
+    <ImageButton
+        android:id="@+id/themeSwitcher"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/btn_bg_press"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/ic_switch_theme" />
+
+    <ImageButton
+        android:id="@+id/playBgm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/btn_bg_press"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="10dp"
+        android:src="@drawable/ic_play_bgm" />
+
+</LinearLayout>

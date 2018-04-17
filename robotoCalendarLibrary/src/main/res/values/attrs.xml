@@ -9,11 +9,11 @@
         <attr name="dayOfMonthColor" format="color" />
         <attr name="dayOfMonthFont" format="string" />
     </declare-styleable>
-    <declare-styleable name="RobotoTextView">
+<!--    <declare-styleable name="RobotoTextView">
         <attr name="font" />
     </declare-styleable>
     <declare-styleable name="RobotoFonts">
-        <attr name="font" format="enum">
+        <attr name="fontlist" format="enum">
             <enum name="roboto_thin" value="0" />
             <enum name="roboto_thin_italic" value="1" />
             <enum name="roboto_light" value="2" />
@@ -38,5 +38,5 @@
             <enum name="roboto_slab_bold" value="21" />
         </attr>
     </declare-styleable>
-
+-->
 </resources>

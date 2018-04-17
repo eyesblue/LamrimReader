@@ -1,5 +1,6 @@
 package eyes.blue;
 
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +16,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -112,7 +114,7 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 					mediaController.setEnabled(true);
 					seekBar=mediaController.getSeekBar();
 				}});
-*/			
+*/
 			mediaPlayer=new MediaPlayer();
 			mediaPlayer.setOnPreparedListener(onPreparedListener);
 			mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener(){
@@ -130,29 +132,30 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 				    switch(what){
 				    case MediaPlayer.MEDIA_ERROR_UNKNOWN:
 				    	whatStr="MEDIA_ERROR_UNKNOWN";
-				    	Util.showErrorPopupWindow(activity, anchorView, "多媒體播放器發生未知的錯誤，請重新嘗試。");
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerUnknowErr));
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
 				    	whatStr="MEDIA_ERROR_SERVER_DIED";
-				    	Util.showErrorPopupWindow(activity, anchorView, "系統中的多媒體播放服務已關閉，請重新嘗試。");
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerServerDie));
 				    	break;
 				    }
 				    
 				    switch(extra){
 				    case MediaPlayer.MEDIA_ERROR_IO:
 				    	extraStr="MEDIA_ERROR_IO";
-				    	Util.showErrorPopupWindow(activity, anchorView, "多媒體播放器無法讀取檔案(輸出入錯誤)，請重新嘗試。");
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerErrorIO));
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_MALFORMED:
 				    	extraStr="MEDIA_ERROR_MALFORMED";
-				    	Util.showErrorPopupWindow(activity, anchorView, "多媒體檔案格式錯誤，請重新嘗試。");
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerMalformed));
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
 				    	extraStr="MEDIA_ERROR_UNSUPPORTED";
+						Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerUnsupported));
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
 				    	extraStr="MEDIA_ERROR_TIMED_OUT";
-				    	Util.showErrorPopupWindow(activity, anchorView, "系統中的多媒體播放服務逾時，請重新嘗試。");
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerTimeOut));
 				    	break;
 				    }
 				    
@@ -172,9 +175,6 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 		
 		//mediaPlayer.setScreenOnWhilePlaying(true); // use it if we use surface view.
 			mediaPlayer.setWakeMode(activity, PowerManager.FULL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE);
-			
-			
-			
 			mpState=MP_IDLE;
 		}
 	}
@@ -494,7 +494,6 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 	
 	public void finish(){
 		release();
-		
 	}
 	
 	/*
@@ -506,14 +505,10 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 	/*
 	 * Set data source of MediaPlayer, and parse the file of subtitle if exist.
 	 * */
-	public void setDataSource(Context context,int index) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException{
-		
-		final File subtitleFile=fsm.getLocalSubtitleFile(index);
-		File speechFile=fsm.getLocalMediaFile(index);
-		
-		if(speechFile==null || !speechFile.exists()){
+	public void setDataSource(final Context context,final int index) throws IllegalArgumentException, SecurityException, IllegalStateException, IOException{
+		if(!fsm.isFilesReady(index)){
 			Log.d(getClass().getName(),"setDataSource: The speech file not exist, skip!!!");
-			Util.showErrorPopupWindow(activity, anchorView, speechFile+"音檔不存在！取消播放！");
+			Util.showErrorToast(activity, String.format(activity.getString(R.string.errPlayFailLakeAudioAndCancel), SpeechData.getSubtitleName(index)));
 			return;
 		}
 
@@ -521,64 +516,58 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 		synchronized(loadingMedia){
 			loadingMedia=index;
 		}
-		
-		if( subtitleFile==null || !subtitleFile.exists()){
-			Log.d(getClass().getName(),"setDataSource: The speech or subtitle file not exist, skip!!!");
-			Util.showInfoPopupWindow(activity, anchorView, "字幕檔案不存在，取消字幕功能。");
-			subtitle=null;
-		}
-		else{
-			Log.d(getClass().getName(),"The subtitle file exist, prepare the subtitle elements.");
-			subtitle = Util.loadSubtitle(subtitleFile);
-			if(subtitle.length==0)subtitle=null;
-		}
-		
-		Log.d(getClass().getName(),"MediaPlayer: Set data source to index: "+index);
-		//Uri speechFileUri=Uri.fromFile(speechFile);
-		
+
+		Log.d(getClass().getName(),"The subtitle file exist, prepare the subtitle elements.");
+		subtitle = Util.loadSubtitle(context, index);
+//		if(subtitle.length==0)subtitle=null;
+		final File speechFile=fsm.getLocalMediaFile(index);// 若檔案在Asset中直接存取
+
 		synchronized(mediaPlayerKey){
-			Log.d(logTag,"Set media player data source in stage: "+mpState+", file: "+ Uri.fromFile(speechFile));
+			Log.d(logTag,"Set media player data source in stage: "+mpState+", file: "+ SpeechData.getSubtitleName(index));
 			if(mpState != MP_IDLE)reset();
 			mpState=MP_INITING;
 			if(mediaPlayer==null){
 				Util.fireException("Media player error in setDataSource(): The MediaPlayer become null, memory free = "+Util.getMemInfo(activity)+"M", new NullPointerException());
-				Util.showInfoPopupWindow(activity, anchorView, "多媒體播放器重建中");
+				Util.showInfoToast(activity, activity.getString(R.string.msgCreateMediaPlayer));
 				createMediaPlayer();
 			}
-			
-			try{
-				if(android.os.Build.VERSION.SDK_INT >= 16){
-					Log.d(logTag,"Build version ("+android.os.Build.VERSION.SDK_INT+") over 16, set media with "+speechFile.getAbsolutePath());
-					String src=speechFile.getAbsolutePath();
-					mediaPlayer.setDataSource(src);
+
+			try { // 若檔案已準備完成，而又不在內外儲存區，則必定在自帶區
+				if (speechFile == null || !speechFile.exists()) {
+					loadAssetMedia(index);
+					return;
 				}
-				else {
-					Log.d(logTag,"Build version ("+android.os.Build.VERSION.SDK_INT+") under 16, set media with "+Uri.fromFile(speechFile));
-					Uri srcUri=Uri.fromFile(speechFile);
+
+				if (android.os.Build.VERSION.SDK_INT >= 16) {
+					Log.d(logTag, "Build version (" + android.os.Build.VERSION.SDK_INT + ") over 16, set media with " + speechFile.getAbsolutePath());
+					String src = speechFile.getAbsolutePath();
+					mediaPlayer.setDataSource(src);
+				} else {
+					Log.d(logTag, "Build version (" + android.os.Build.VERSION.SDK_INT + ") under 16, set media with " + Uri.fromFile(speechFile));
+					Uri srcUri = Uri.fromFile(speechFile);
 					mediaPlayer.setDataSource(context, srcUri);
 				}
-			}
-			catch(IllegalArgumentException iae){
-				Util.fireException("SetDataSource in an invalid state, mpState="+mpStateStr[mpState]+", mediaPlayer="+mediaPlayer+", context="+context+", speechFile="+speechFile+", is speech file exist="+((speechFile!=null)?speechFile.exists():"speechFile is null.")+", Uri="+Uri.fromFile(speechFile).toString(), iae);
-				if(!setDataSrcByFD(context, speechFile)){
+			} catch (IllegalArgumentException iae) {
+				Util.fireException("SetDataSource in an invalid state, mpState=" + mpStateStr[mpState] + ", mediaPlayer=" + mediaPlayer + ", context=" + context + ", speechFile=" + speechFile + ", is speech file exist=" + ((speechFile != null) ? speechFile.exists() : "speechFile is null.") + ", Uri=" + Uri.fromFile(speechFile).toString(), iae);
+				if (!setDataSrcByFD(context, speechFile)) {
 					createMediaPlayer();
 					return;
 				}
-			}
-			catch(IOException ioe){
-				Util.fireException("Can't setDataSource by normal way, mpState="+mpStateStr[mpState]+", mediaPlayer="+mediaPlayer+", context="+context+", speechFile="+speechFile+", is speech file exist="+((speechFile!=null)?speechFile.exists():"speechFile is null.")+", Uri="+Uri.fromFile(speechFile).toString(), ioe);
-				if(!setDataSrcByFD(context, speechFile)){
+			} catch (IOException ioe) {
+				Util.fireException("Can't setDataSource by normal way, mpState=" + mpStateStr[mpState] + ", mediaPlayer=" + mediaPlayer + ", context=" + context + ", speechFile=" + speechFile + ", is speech file exist=" + ((speechFile != null) ? speechFile.exists() : "speechFile is null.") + ", Uri=" + Uri.fromFile(speechFile).toString(), ioe);
+				if (!setDataSrcByFD(context, speechFile)) {
 					createMediaPlayer();
 					return;
 				}
-			}catch(Exception e){
-				Util.fireException("Error happen in SetDataSource(), mpState="+mpStateStr[mpState]+", mediaPlayer="+mediaPlayer+", context="+context+", speechFile="+speechFile+", is speech file exist="+((speechFile!=null)?speechFile.exists():"speechFile is null.")+", Uri="+Uri.fromFile(speechFile).toString(), e);
-				Util.showErrorPopupWindow(activity, anchorView, "讀取音檔失敗，請重新嘗試。");
+			} catch (Exception e) {
+				Util.fireException("Error happen in SetDataSource(), mpState=" + mpStateStr[mpState] + ", mediaPlayer=" + mediaPlayer + ", context=" + context + ", speechFile=" + speechFile + ", is speech file exist=" + ((speechFile != null) ? speechFile.exists() : "speechFile is null.") + ", Uri=" + Uri.fromFile(speechFile).toString(), e);
+				Util.showErrorToast(activity, activity.getString(R.string.msgFailReadAudioFIle));
 				createMediaPlayer();
 				return;
 			}
-			mpState=MP_INITED;
+			mpState = MP_INITED;
 			mediaPlayer.prepare();
+
 		}
 	}
 	
@@ -595,9 +584,31 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 		
 		if(!hasErr)return true;
 //		String errStr="無法正常讀取音檔，請檢查音檔是否損毀，請試著重新下載此音檔，若確定非上述問題，請回報開發者您的機型無法正常播放音檔。";
-//		Util.showErrorPopupWindow(activity, anchorView, errStr);
+//		Util.showErrorToast(activity, anchorView, errStr);
 		Util.fireException("Can't setDataSource by FileDescriptor way, mpState="+mpStateStr[mpState]+", mediaPlayer="+mediaPlayer+", context="+context+", speechFile="+speechFile+", is speech file exist="+((speechFile!=null)?speechFile.exists():"speechFile is null.")+", Uri="+Uri.fromFile(speechFile).toString(), e);
 		return false;
+	}
+
+	private void loadAssetMedia(int index)throws Exception{
+		AssetFileDescriptor afd=fsm.getAssetMediaFile(index);
+
+		Log.d(logTag,"Load media from Assets folder: "+mpState+", file: "+ SpeechData.getSubtitleName(index));
+		if(mpState != MP_IDLE)reset();
+		mpState=MP_INITING;
+		if(mediaPlayer==null){
+			Util.fireException("Media player error in setDataSource(): The MediaPlayer become null, memory free = "+Util.getMemInfo(activity)+"M", new NullPointerException());
+			Util.showInfoToast(activity, activity.getString(R.string.msgCreateMediaPlayer));
+			createMediaPlayer();
+		}
+		try{
+			mediaPlayer.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
+		}catch(IllegalArgumentException | IOException iae){
+			createMediaPlayer();
+			Util.showErrorToast(activity, activity.getString(R.string.errOpenAssetMedia),1000);
+			return;
+		}
+		mpState=MP_INITED;
+		mediaPlayer.prepare();
 	}
 
 	/*
@@ -992,10 +1003,10 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 
 			remoteControlReceiver=new ComponentName(activity,RemoteControlReceiver.class.getName());
 			audioManager.registerMediaButtonEventReceiver(remoteControlReceiver);
-			
+
 			Log.d(logTag, "Prepare data");
 			changedListener.onMediaPrepared();
-			
+
 			loadingMedia=-1;
 			Log.d(getClass().getName(),"**** Leave onPreparedListener of MediaPlayer ****");
 		}

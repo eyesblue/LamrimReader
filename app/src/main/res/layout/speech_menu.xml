@@ -22,39 +22,39 @@
                 android:id="@+id/btnDownloadAll"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/download" />
+                android:src="@drawable/ic_download" />
 
             <TextView
                 android:id="@+id/downloadAllTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="全部下載"
+                android:text="@string/btnDownloadAll"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <ImageButton
                 android:id="@+id/btnMaintain"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/maintain" />
+                android:src="@drawable/ic_maintain" />
 
             <TextView
                 android:id="@+id/setRightBound"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="檔案維護"
+                android:text="@string/dlgTitleMaintaining"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <ImageButton
                 android:id="@+id/btnManageStorage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/options" />
+                android:src="@drawable/ic_options" />
 
             <TextView
                 android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="儲存管理"
+                android:text="@string/title_activity_storage_manage"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
 

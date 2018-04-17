@@ -65,6 +65,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import eyes.blue.RemoteDataSource.RemoteSource;
+
 public class CalendarActivity extends AppCompatActivity {
 	Hashtable<String, GlRecord> glSchedule = new Hashtable<String, GlRecord>();
 	ProgressDialog downloadPDialog = null;
@@ -447,15 +449,7 @@ public class CalendarActivity extends AppCompatActivity {
 		int[] speechStart = GlRecord.getSpeechStrToInt(glr.speechPositionStart);// {speechIndex, TimeMs}
 		int[] speechEnd = GlRecord.getSpeechStrToInt(glr.speechPositionEnd);//  {speechIndex, TimeMs}
 
-		File mediaStart = fsm.getLocalMediaFile(speechStart[0]);
-		File subtitleStart = fsm.getLocalSubtitleFile(speechStart[0]);
-		File mediaEnd = fsm.getLocalMediaFile(speechEnd[0]);
-		File subtitleEnd = fsm.getLocalSubtitleFile(speechEnd[0]);
-		
-		if(mediaStart == null || subtitleStart == null || mediaEnd == null || subtitleEnd == null)
-			return false;
-		
-		return (mediaStart.exists() && subtitleStart.exists() && mediaEnd.exists() && subtitleEnd.exists());
+		return (fsm.isFilesReady(speechStart[0]) && fsm.isFilesReady(speechEnd[0]));
 	}
 
 	private File getLocalScheduleFile() {
@@ -478,20 +472,20 @@ public class CalendarActivity extends AppCompatActivity {
 			csvr = new CsvReader(file.getAbsolutePath(), ',', Charset.forName("UTF-8"));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.localGlobalLamrimScheduleFileNotFound));
+			Util.showErrorToast(CalendarActivity.this, getString(R.string.localGlobalLamrimScheduleFileNotFound));
 			Util.fireException("Error happen while open Global Lamrim schedule file.", e);
 			return false;
 		}
 
 		try {
 			if (!csvr.readRecord()) {
-				Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.localGlobalLamrimScheduleFileReadErr));
+				Util.showErrorToast(CalendarActivity.this,  getString(R.string.localGlobalLamrimScheduleFileReadErr));
 				Util.fireException("Error happen while read recrod from Global Lamrim schedule file(csvr.readRecord()).", new Exception());
 				return false;
 			}
 			int count = csvr.getColumnCount();
 			if (count < 2) {
-				Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.localGlobalLamrimScheduleFileRangeFmtErr));
+				Util.showErrorToast(CalendarActivity.this, getString(R.string.localGlobalLamrimScheduleFileRangeFmtErr));
 				Util.fireException("Error: the date start and date end colume of global lamrim schedule file is not 2 colume", new Exception("Global Lamrim schedule file format error."));
 				return false;
 			}
@@ -513,13 +507,13 @@ public class CalendarActivity extends AppCompatActivity {
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.localGlobalLamrimScheduleFileDateFmtErr));
+				Util.showErrorToast(CalendarActivity.this, getString(R.string.localGlobalLamrimScheduleFileDateFmtErr));
 				Util.fireException("Error happen while parse data region of Global Lamrim schedule file: data1=" + csvr.get(0) + ", data2=" + csvr.get(1), e);
 				return false;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.localGlobalLamrimScheduleFileReadErr));
+			Util.showErrorToast(CalendarActivity.this, getString(R.string.localGlobalLamrimScheduleFileReadErr));
 			Util.fireException("IOException happen while read date region of global lamrim schedule file.", e);
 			return false;
 		}
@@ -547,7 +541,7 @@ public class CalendarActivity extends AppCompatActivity {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.localGlobalLamrimScheduleFileDecodeErr));
+			Util.showErrorToast(CalendarActivity.this, getString(R.string.localGlobalLamrimScheduleFileDecodeErr));
 			Util.fireException("IOException happen while read date region of global lamrim schedule file.", e);
 			return false;
 		}
@@ -568,7 +562,7 @@ public class CalendarActivity extends AppCompatActivity {
 			length = (int) ((endDate.getTime() - startDate.getTime()) / 86400000) + 1;
 		} catch (ParseException e) {
 			e.printStackTrace();
-			Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.localGlobalLamrimScheduleFileReadErr)+ "\"" + glr + "\"");
+			Util.showErrorToast(CalendarActivity.this, getString(R.string.localGlobalLamrimScheduleFileReadErr)+ "\"" + glr + "\"");
 			Util.fireException("Date format parse error: startDate=" + startDate + ", endDate=" + endDate, e);
 			return false;
 		}
@@ -656,7 +650,7 @@ public class CalendarActivity extends AppCompatActivity {
 	}
 
 			private boolean downloadSchedule() {
-				GoogleRemoteSource grs = new GoogleRemoteSource(getApplicationContext());
+				RemoteSource grs = Util.getRemoteSource(getApplicationContext())[0];
 				String url = grs.getGlobalLamrimSchedule();
 				String scheFileName = getString(R.string.globalLamrimScheduleFile);
 				String tmpFileSub = getString(R.string.downloadTmpPostfix);
@@ -680,15 +674,14 @@ public class CalendarActivity extends AppCompatActivity {
 					if (respCode != HttpStatus.SC_OK) {
 						httpclient.getConnectionManager().shutdown();
 						dismissDownloadProgressDialog();
-						Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), getString(R.string.dlgDescDownloadFail));
+						Util.showErrorToast(CalendarActivity.this, getString(R.string.dlgDescDownloadFail));
 						return false;
 					}
 				} catch (ClientProtocolException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
 					e.printStackTrace();
-					Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView),
-							getString(R.string.dlgDescDownloadFail));
+					Util.showErrorToast(CalendarActivity.this, getString(R.string.dlgDescDownloadFail));
 					if (downloadPDialog.isShowing()) {
 						dismissDownloadProgressDialog();
 					}
@@ -708,8 +701,7 @@ public class CalendarActivity extends AppCompatActivity {
 					}
 					httpclient.getConnectionManager().shutdown();
 					e2.printStackTrace();
-					Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView),
-							getString(R.string.dlgDescDownloadFail));
+					Util.showErrorToast(CalendarActivity.this, getString(R.string.dlgDescDownloadFail));
 					if (downloadPDialog.isShowing()) {
 						dismissDownloadProgressDialog();
 					}
@@ -717,8 +709,7 @@ public class CalendarActivity extends AppCompatActivity {
 				} catch (IOException e2) {
 					httpclient.getConnectionManager().shutdown();
 					e2.printStackTrace();
-					Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView),
-							getString(R.string.dlgDescDownloadFail));
+					Util.showErrorToast(CalendarActivity.this, getString(R.string.dlgDescDownloadFail));
 					if (downloadPDialog.isShowing()) {
 						dismissDownloadProgressDialog();
 					}
@@ -735,7 +726,7 @@ public class CalendarActivity extends AppCompatActivity {
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 					Util.fireException("Can't create temp file.", e);
-					Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView), "無法建立暫存檔，請檢查磁碟空間是否足夠。");
+					Util.showErrorToast(CalendarActivity.this, "無法建立暫存檔，請檢查磁碟空間是否足夠。");
 					if (downloadPDialog.isShowing()) {
 						dismissDownloadProgressDialog();
 					}
@@ -775,8 +766,7 @@ public class CalendarActivity extends AppCompatActivity {
 					e.printStackTrace();
 					Log.d(getClass().getName(), Thread.currentThread().getName()
 							+ ": IOException happen while download media.");
-					Util.showErrorPopupWindow(CalendarActivity.this, findViewById(R.id.rootView),
-							getString(R.string.dlgDescDownloadFail));
+					Util.showErrorToast(CalendarActivity.this, getString(R.string.dlgDescDownloadFail));
 					if (downloadPDialog.isShowing()) {
 						dismissDownloadProgressDialog();
 					}

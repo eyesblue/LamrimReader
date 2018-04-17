@@ -15,9 +15,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.IntentService;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,6 +24,8 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
+
+import eyes.blue.RemoteDataSource.RemoteSource;
 
 
 public class DownloadAllService extends IntentService {
@@ -176,7 +175,7 @@ public class DownloadAllService extends IntentService {
 		Intent bcIntent = new Intent();
 		bcIntent.setAction(NOTIFICATION);
 		bcIntent.putExtra("action", "error");
-		bcIntent.putExtra("desc", "儲存空間不足或無法使用儲存裝置，請檢查您的儲存裝置是否正常，或磁碟已被電腦連線所獨佔！");
+		bcIntent.putExtra("desc", getString(R.string.errStorageNotReady));
 		sendBroadcast(bcIntent); 
 		
 		removeNotification();
@@ -196,12 +195,12 @@ public class DownloadAllService extends IntentService {
 	private synchronized void reportStartDownloadIndex(int threadId, int downloadIndex) {
 		if(threadId == 0)notifyMsg[threadId]=SpeechData.getSubtitleName(downloadIndex);
 		else notifyMsg[threadId]=", "+SpeechData.getSubtitleName(downloadIndex);
-		String msg="下載列表：";
+		String msg=getString(R.string.msgDownloadList);
 		
 		for(int i=0;i<defaultThreads;i++){
 			msg+=notifyMsg[i];
 		}
-		notifyMsg("廣論App資源下載", msg);
+		notifyMsg(getString(R.string.msgLamrimDownloadList), msg);
 	}
 	
 	/*
@@ -283,15 +282,12 @@ public class DownloadAllService extends IntentService {
 		private void runTask(){
 			
 	    	String locale = DownloadAllService.this.getResources().getConfiguration().locale.getCountry();
-	    	RemoteSource rs = null;
-	    	
-	    	if(locale.equals("zh_CN")){
-		    	// If there exist the source download site in China.
-	    	}
-	    	else {rs = new GoogleRemoteSource(DownloadAllService.this);}
-	    	
+	    	RemoteSource rs = Util.getRemoteSource(DownloadAllService.this)[0];
+
 	    	int downloadingIndex=-1;
 	    	while(downloadIndex<SpeechData.name.length){
+	    		boolean isDwSuccess=false;
+
 	    		synchronized(threadPool){
 	    			if(downloadIndex>=SpeechData.name.length){
 	    				Log.d("DownloadAllThread","Thread"+tId+" Terminate, End of media index reached.");
@@ -309,33 +305,23 @@ public class DownloadAllService extends IntentService {
 	    			Log.d(getClass().getName(),"Thread_"+tId+" Terminate, Task has canceled.");
 	    			return;
 	    		}
-	    		
-	    		boolean mediaExist=false, subtitleExist=false;
-				File subtitleFile=fsm.getLocalSubtitleFile(downloadingIndex);
+
 				File mediaFile=fsm.getLocalMediaFile(downloadingIndex);
-				try{
-					subtitleExist=subtitleFile.exists();
-					mediaExist=mediaFile.exists();
-				}catch(NullPointerException npe){
+				if(mediaFile==null){
 					Log.d(getClass().getName(),"The storage media has not usable, skip.");
 					reportStorageUnusable();
-					Util.fireException("There is no storage usable.", npe);
 					return;
 				}
-				if(!subtitleExist){
-					Log.d("DownloadAllService","The subtitle not exist, download to "+subtitleFile.getAbsolutePath());
-					subtitleExist=download(rs.getSubtitleFileAddress(downloadingIndex),subtitleFile.getAbsolutePath());
+
+				if(!mediaFile.exists()){
 					reportStartDownloadIndex(tId, downloadingIndex);
+					isDwSuccess=download(rs.getMediaFileAddress(downloadingIndex), mediaFile.getAbsolutePath());
+					if(!isDwSuccess)
+						hasFailure=true;
 				}
-				
-				if(!mediaExist){
-					mediaExist=download(rs.getMediaFileAddress(downloadingIndex),mediaFile.getAbsolutePath());
-					reportStartDownloadIndex(tId, downloadingIndex);
-				}
-				if(!subtitleExist || !mediaExist)hasFailure=true;
-				reportDownloadState(notificationId, downloadingIndex, (subtitleExist && mediaExist));
+				reportDownloadState(notificationId, downloadingIndex, isDwSuccess);
 			}
-			return ;
+			reportDownloadAllTerminate();
 		}
 		
 		public boolean download(String url, String outputPath){

@@ -17,7 +17,7 @@
                 android:id="@+id/TextView04"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="廣論起始位置: 頁數"
+                android:text="@string/dlgRegLamrimStart"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
@@ -36,7 +36,7 @@
                 android:id="@+id/TextView03"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="行數"
+                android:text="@string/dlgRegLineNum"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
@@ -59,7 +59,7 @@
                 android:id="@+id/theoryIndex"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="廣論結束位置: 頁數"
+                android:text="@string/dlgRegLamrimEnd"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
@@ -77,7 +77,7 @@
                 android:id="@+id/TextView01"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="行數"
+                android:text="@string/dlgRegLineNum"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <EditText
@@ -101,7 +101,7 @@
                 android:id="@+id/startTimeTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="開始時間："
+                android:text="@string/dlgRegStartTime"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
@@ -121,7 +121,7 @@
                 android:id="@+id/endTimeTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="結束時間："
+                android:text="@string/dlgRegEndTime"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
