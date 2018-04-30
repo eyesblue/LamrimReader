@@ -21,6 +21,7 @@ import com.google.android.gms.appinvite.AppInviteReferral;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 */
+import com.crashlytics.android.Crashlytics;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.util.List;
@@ -57,7 +58,7 @@ public class IntentActivity  extends FragmentActivity {
 									// Extract deep link from Intent
 									Intent intent = result.getInvitationIntent();
 									String deepLink = AppInviteReferral.getDeepLink(intent);
-									Log.d(logTag,"Deep Link: "+deepLink);
+									Crashlytics.log(Log.DEBUG,logTag,"Deep Link: "+deepLink);
 
 									Uri path = Uri.parse(deepLink);
 									parseRest(path);
@@ -67,7 +68,7 @@ public class IntentActivity  extends FragmentActivity {
 
 									// ...
 								} else {
-									Log.d(logTag, "getInvitation: no deep link found.");
+									Crashlytics.log(Log.DEBUG,logTag, "getInvitation: no deep link found.");
 								}
 							}
 						});
@@ -83,22 +84,22 @@ public class IntentActivity  extends FragmentActivity {
 		});
 
 		Intent intent = this.getIntent();
-		Log.d(getClass().getName(), "Action: " + intent.getAction() + ", Categories: " + intent.getCategories() + ", Scheme: " + intent.getScheme() + ", Mime type: " + intent.getType() + ", Data: " + intent.getData());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Action: " + intent.getAction() + ", Categories: " + intent.getCategories() + ", Scheme: " + intent.getScheme() + ", Mime type: " + intent.getType() + ", Data: " + intent.getData());
 		Uri intentPathUri = intent.getData();
-		Log.d(getClass().getName(), "Check intent.");
-		Log.d(getClass().getName(), "Intent data: " + intentPathUri);
-		Log.d(getClass().getName(), "Scheme: " + intentPathUri.getScheme());
-		Log.d(getClass().getName(), "EncodedFragment: " + intentPathUri.getEncodedFragment());
-		Log.d(getClass().getName(), "EncodedPath: " + intentPathUri.getEncodedPath());
-		Log.d(getClass().getName(), "EncodedQuery: " + intentPathUri.getEncodedQuery());
-		Log.d(getClass().getName(), "EncodedSchemeSpecificPart: " + intentPathUri.getEncodedSchemeSpecificPart());
-		Log.d(getClass().getName(), "Host: " + intentPathUri.getHost());
-		Log.d(getClass().getName(), "LastPathSegment: " + intentPathUri.getLastPathSegment());
-		Log.d(getClass().getName(), "Path: " + intentPathUri.getPath());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Check intent.");
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Intent data: " + intentPathUri);
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Scheme: " + intentPathUri.getScheme());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "EncodedFragment: " + intentPathUri.getEncodedFragment());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "EncodedPath: " + intentPathUri.getEncodedPath());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "EncodedQuery: " + intentPathUri.getEncodedQuery());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "EncodedSchemeSpecificPart: " + intentPathUri.getEncodedSchemeSpecificPart());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Host: " + intentPathUri.getHost());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "LastPathSegment: " + intentPathUri.getLastPathSegment());
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Path: " + intentPathUri.getPath());
 
 		if(intentPathUri.getHost().equalsIgnoreCase(getString(R.string.firebase_deeplink_host))) {
 			String link = intentPathUri.getQueryParameter("link");
-			Log.d(logTag,"Firebase link: "+link);
+			Crashlytics.log(Log.DEBUG,logTag,"Firebase link: "+link);
 			parseParam(Uri.parse(link));
 		}
 		else if(intentPathUri.getEncodedQuery() == null) parseRest(intentPathUri);
@@ -127,7 +128,7 @@ public class IntentActivity  extends FragmentActivity {
 		if(title==null)title="";
 		else title=Uri.decode(intentPathUri.getQueryParameter("title"));
 
-		Log.d(getClass().getName(), "Parse result: mediaStart=" + speechStart[0] + ", startTimeMs=" + speechStart[1] + ", mediaEnd=" + speechEnd[0] + ", theoryStartPage=" + theoryStart[0] + ", theoryStartLine=" + theoryStart[1]
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Parse result: mediaStart=" + speechStart[0] + ", startTimeMs=" + speechStart[1] + ", mediaEnd=" + speechEnd[0] + ", theoryStartPage=" + theoryStart[0] + ", theoryStartLine=" + theoryStart[1]
 				+ ", theoryEndPage=" + theoryEnd[0] + ", theoryEndLine=" + theoryEnd[1] + ", title=" + Uri.decode(intentPathUri.getQueryParameter("title")));
 		startMainActivity(speechStart, speechEnd, theoryStart, theoryEnd, title);
 	}
@@ -192,7 +193,7 @@ public class IntentActivity  extends FragmentActivity {
 
 	private void startMainActivity(int[] speechStart, int[] speechEnd, int[] theoryStart, int[] theoryEnd, String title){
 		Intent lrInt = new Intent(IntentActivity.this, LamrimReaderActivity.class);
-		Log.d(getClass().getName(), "This intent=" + lrInt);
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "This intent=" + lrInt);
 		lrInt.putExtra("mediaStart", speechStart[0]);
 		lrInt.putExtra("startTimeMs", speechStart[1]);
 		lrInt.putExtra("mediaEnd", speechEnd[0]);
@@ -204,7 +205,8 @@ public class IntentActivity  extends FragmentActivity {
 		lrInt.putExtra("mode", "region");
 		if(title!=null)lrInt.putExtra("title", title);
 
-		Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "LAUNCH_APP_WITH_DEEP_LINKING");
+		Crashlytics.setString("Statistics", "LaunchAppWithDeepLinking");
+
 		lrInt.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		lrInt.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		lrInt.setAction(getIntent().getAction());

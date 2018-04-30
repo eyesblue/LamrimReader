@@ -27,9 +27,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.crash.FirebaseCrash;
-
+import com.crashlytics.android.Crashlytics;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -63,11 +61,7 @@ public class Util {
     static Typeface educFont=null;
     static Hashtable<Character,Character> tsCharTable=null;
     static Toast toast=null;
-//    static View toastView = null;
     static long subtitleLastShowTime = -1;
-//    static ImageView subtitleIcon = null;
-//    static ImageView infoIcon = null;
-//    static ImageView errorIcon = null;
     static String logTag = "Util";
 
     public static String[] getRegionInfo(FileSysManager fsm, int[] speechData) {
@@ -379,13 +373,7 @@ public class Util {
     @SuppressLint("NewApi")
     public static Point getResolution(Activity activity) {
         Point screenDim = new Point();
-
-        if (Build.VERSION.SDK_INT >= 13)
-            activity.getWindowManager().getDefaultDisplay().getSize(screenDim);
-        else {
-            screenDim.x = activity.getWindowManager().getDefaultDisplay().getWidth();
-            screenDim.y = activity.getWindowManager().getDefaultDisplay().getHeight();
-        }
+        activity.getWindowManager().getDefaultDisplay().getSize(screenDim);
         return screenDim;
     }
 
@@ -581,7 +569,7 @@ public class Util {
         }
     }
 
-    public static String MENU_CLICK = "MENU_CLICK";
+/*    public static String MENU_CLICK = "MENU_CLICK";
     public static String BUTTON_CLICK = "BUTTON_CLICK";
     public static String SPEND_TIME = "SPEND_TIME";
     public static String STATISTICS = "STATISTICS";
@@ -595,16 +583,10 @@ public class Util {
         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
     }
 
+*/ /*
     @TargetApi(Build.VERSION_CODES.N)
     public static void fireTimming(Context context, FirebaseAnalytics mFirebaseAnalytics, String logTag, String type, String name, int value) {
 
-/*		Locale current ;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-			current = context.getResources().getConfiguration().getLocales().get(0);
-		} else{
-			current = context.getResources().getConfiguration().locale;
-		}
-*/
         Bundle bundle = new Bundle();
 //		bundle.putString("Activity", logTag);
         bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, type);
@@ -618,10 +600,15 @@ public class Util {
         mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
     }
 
+
     public static void fireException(String msg, Throwable e) {
         String repMsg = msg + ", V" + Build.VERSION.RELEASE + ", " + Util.getDeviceName() + ", " + "Thread: {" + Thread.currentThread().getName() + "}";//, Exception: " + ExceptionUtils.getStackTrace(throwable)
         FirebaseCrash.log(repMsg);
         FirebaseCrash.report(e);
+    }
+*/
+    public static void fireException(String msg, Throwable e){
+        Crashlytics.logException(e);
     }
 
     public static void multiThreadExec(Runnable[] tasks) {

@@ -46,6 +46,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 
 //import net.simonvt.calendarview.CalendarView;
+import com.crashlytics.android.Crashlytics;
 import com.csvreader.CsvReader;
 import com.disegnator.robotocalendar.RobotoCalendarView;
 import com.disegnator.robotocalendar.RobotoCalendarView.RobotoCalendarListener;
@@ -83,14 +84,11 @@ public class CalendarActivity extends AppCompatActivity {
 	GlRecord selectedGlr = null;
 	boolean dialogShowing = false;
 	String selectedDay = null, logTag=getClass().getName();
-	private FirebaseAnalytics mFirebaseAnalytics;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_calendar);
-
-		mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
 		LayoutInflater factory = (LayoutInflater) this.getSystemService(LAYOUT_INFLATER_SERVICE);
 		actionBarControlPanel = factory.inflate(R.layout.calendar_actionbar_control_panel, null);
@@ -129,7 +127,8 @@ public class CalendarActivity extends AppCompatActivity {
 				Intent intent = new Intent();
 				intent.putExtra("reloadLastState", true);
 				setResult(Activity.RESULT_OK, intent);
-				Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "RELOAD_GLOBAL_LAMRIM_SCHEDULE");
+				Crashlytics.setString("ButtonClick", "ReloadGlobalLamrimSchedule");
+
 				finish();
 			}
 		});
@@ -663,7 +662,8 @@ public class CalendarActivity extends AppCompatActivity {
 				showDownloadProgressDialog();
 
 				Log.d(getClass().getName(), "Download " + url);
-				HttpClient httpclient = getNewHttpClient();
+				//HttpClient httpclient = getNewHttpClient();
+				HttpClient httpclient = new DefaultHttpClient();
 				HttpGet httpget = new HttpGet(url);
 				HttpResponse response = null;
 				int respCode = -1;
@@ -816,7 +816,7 @@ public class CalendarActivity extends AppCompatActivity {
 				data.putExtra("desc", glr.desc);
 				return data;
 			}
-
+/*
 			private HttpClient getNewHttpClient() {
 				try {
 					KeyStore trustStore = KeyStore.getInstance(KeyStore
@@ -843,6 +843,7 @@ public class CalendarActivity extends AppCompatActivity {
 					return new DefaultHttpClient();
 				}
 			}
+
 
 			public class MySSLSocketFactory extends SSLSocketFactory {
 				SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -881,4 +882,5 @@ public class CalendarActivity extends AppCompatActivity {
 					return sslContext.getSocketFactory().createSocket();
 				}
 			}
+			*/
 		}

@@ -98,10 +98,13 @@
     <string name="bookContent">論文</string>
 
     <!-- For LamrimReaderActivity -->
+    <!-- Change Log -->
+    <string name="background_color">black</string>
     <string name="msgNewVerHasRes">新版本已發佈</string>
     <string name="msgUpdateNow">立即更新</string>
     <string name="msgRemindMe">稍後通知我</string>
     <string name="msgSkipTheVer">忽略此版本</string>
+    <string name="updateWebPage">http://lamrimreader.eyes-blue.com/</string>
 
     <string name="app_name">廣論App</string>
     <string name="menuStrSelectSpeech">選擇音檔</string>

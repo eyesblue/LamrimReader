@@ -14,8 +14,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+
+    useLibrary 'org.apache.http.legacy'
 }
 
 dependencies {
-    compile files('libs/org.apache.http.legacy.jar')
+
 }

@@ -12,6 +12,8 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -149,7 +151,7 @@ public class FileSysManager {
 
 /*        	// Move old files(LamrimReader/{audio,subtitle,theory} to new direct(廣論App/{audio,subtitle,theory}).
         	File oldDirRoot=new File(srcRoot[INTERNAL]+File.separator+dirs[0]).getParentFile().getParentFile();
-        	Log.d("FileSysManager","Pkg dir: "+oldDirRoot.getAbsolutePath());
+        	Crashlytics.log(Log.DEBUG,"FileSysManager","Pkg dir: "+oldDirRoot.getAbsolutePath());
         	oldDirRoot=new File(oldDirRoot.getAbsolutePath()+File.separator+"LamrimReader");
         	for(String s:dirs){
         		File oldSubDir=new File(oldDirRoot+File.separator+s);
@@ -176,7 +178,7 @@ public class FileSysManager {
             specFile = new File(userSpecDir + File.separator + SpeechData.name[i]);
             // Test is exist and readable.
             if (specFile.exists() && specFile.canRead()) {
-                Log.d(logTag, Thread.currentThread().getName() + ": the media file exist in user specification location: " + specFile.getAbsolutePath());
+                Crashlytics.log(Log.DEBUG,logTag, Thread.currentThread().getName() + ": the media file exist in user specification location: " + specFile.getAbsolutePath());
                 return specFile;
             }
         }
@@ -184,12 +186,12 @@ public class FileSysManager {
         if (isExtMemWritable() && srcRoot[EXTERNAL] != null) {
             extF = new File(srcRoot[EXTERNAL] + File.separator + context.getString(R.string.audioDirName) + File.separator + SpeechData.name[i]);
             //extF=context.getExternalFilesDir(context.getString(R.string.audioDirName)+File.separator+SpeechData.name[i]);
-//        		Log.d(logTag,"Check exist: "+extF.getAbsolutePath());
+//        		Crashlytics.log(Log.DEBUG,logTag,"Check exist: "+extF.getAbsolutePath());
             if (extF.exists()) return extF;
         }
         intF = new File(srcRoot[INTERNAL] + File.separator + context.getString(R.string.audioDirName) + File.separator + SpeechData.name[i]);
         //intF=new File(context.getFilesDir()+File.separator+context.getString(R.string.audioDirName)+File.separator+SpeechData.name[i]);
-//    		Log.d(logTag,"Check exist: "+intF.getAbsolutePath());
+//    		Crashlytics.log(Log.DEBUG,logTag,"Check exist: "+intF.getAbsolutePath());
         if (intF.exists()) return intF;
 
         // ======== The file is not exist, the caller should ask for download and save locate ============
@@ -203,11 +205,11 @@ public class FileSysManager {
         int reserv = context.getResources().getIntArray(R.array.mediaFileSize)[i];
         reserv += reserv * context.getResources().getInteger(R.integer.reservSpacePercent);
         if (isExtMemWritable()) {
-//    			Log.d(logTag,"File not exist return user external place");
+//    			Crashlytics.log(Log.DEBUG,logTag,"File not exist return user external place");
             if (getFreeMemory(EXTERNAL) > reserv)
                 return extF;
         }
-//    		Log.d(logTag,"File not exist return user internal place");
+//    		Crashlytics.log(Log.DEBUG,logTag,"File not exist return user internal place");
         if (getFreeMemory(INTERNAL) > reserv)
             return intF;
 
@@ -266,7 +268,7 @@ public class FileSysManager {
     }
 
     public void deleteAllSpeechFiles(int locate) {
-        Log.d("FileSysManager", "Delete all speech file in " + locateDesc[locate]);
+        Crashlytics.log(Log.DEBUG,"FileSysManager", "Delete all speech file in " + locateDesc[locate]);
         String dir = context.getString(R.string.audioDirName);
 
         File srcDir = new File(srcRoot[locate] + File.separator + dir);
@@ -276,7 +278,7 @@ public class FileSysManager {
     }
 
     public void deleteAllSubtitleFiles(int locate) {
-        Log.d("FileSysManager", "Delete all subtitle file in " + locateDesc[locate]);
+        Crashlytics.log(Log.DEBUG,"FileSysManager", "Delete all subtitle file in " + locateDesc[locate]);
         String dir = context.getString(R.string.subtitleDirName);
         File srcDir = new File(srcRoot[locate] + File.separator + dir);
         for (File f : srcDir.listFiles())
@@ -345,7 +347,7 @@ public class FileSysManager {
 
     private boolean moveContentsOfDir(File srcDir, File destDir, final ProgressDialog pd) {
         final File[] files = srcDir.listFiles();
-        Log.d(logTag, "There are " + files.length + " files wait for move.");
+        Crashlytics.log(Log.DEBUG,logTag, "There are " + files.length + " files wait for move.");
         ((Activity) context).runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -389,7 +391,7 @@ public class FileSysManager {
         File distTemp = new File(to.getAbsolutePath() + context.getString(R.string.downloadTmpPostfix));
         FileInputStream fis = null;
         FileOutputStream fos = null;
-        Log.d(logTag, "Copy " + from.getAbsolutePath() + " to " + to.getAbsolutePath());
+        Crashlytics.log(Log.DEBUG,logTag, "Copy " + from.getAbsolutePath() + " to " + to.getAbsolutePath());
         try {
             fis = new FileInputStream(from);
             fos = new FileOutputStream(distTemp);
@@ -445,16 +447,16 @@ public class FileSysManager {
                 sbx = new File(srcRoot[EXTERNAL] + File.separator + context.getString(R.string.subtitleDirName) + File.separator + SpeechData.getSubtitleName(i) + "." + context.getString(R.string.defSubtitleType));
             }
             if (meu != null && meu.exists()) {
-                Log.d(logTag, SpeechData.getNameId(i) + " Media file exist in USER SPECIFY DIR, delete external and internal.");
+                Crashlytics.log(Log.DEBUG,logTag, SpeechData.getNameId(i) + " Media file exist in USER SPECIFY DIR, delete external and internal.");
                 if (srcRoot[EXTERNAL] != null) mex.delete();
                 mei.delete();
             } else if (srcRoot[EXTERNAL] != null && mex.exists()) {
-                Log.d(logTag, SpeechData.getNameId(i) + " Media file exist in EXTERNAL DIR, delete internal.");
+                Crashlytics.log(Log.DEBUG,logTag, SpeechData.getNameId(i) + " Media file exist in EXTERNAL DIR, delete internal.");
                 mei.delete();
             }
 
             if (srcRoot[EXTERNAL] != null && sbx.exists()) {
-                Log.d(logTag, SpeechData.getNameId(i) + " Subtitle file exist in EXTERNAL DIR, delete internal.");
+                Crashlytics.log(Log.DEBUG,logTag, SpeechData.getNameId(i) + " Subtitle file exist in EXTERNAL DIR, delete internal.");
                 sbi.delete();
             }
         }

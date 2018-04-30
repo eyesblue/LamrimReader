@@ -2,6 +2,8 @@ package eyes.blue;
 
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
+
 public class GlRecord {
 	String dateStart;
 	String dateEnd;
@@ -35,7 +37,7 @@ public class GlRecord {
 		for(int i=1;i<section.length;i++)
 			section[i]=(int) (Float.parseFloat(split[i])*1000);
 		section[1]*=60;
-		Log.d("Global Lamrim record","Parse string ["+str+"] to time ["+section[1]+":"+section[2]+"]");
+		Crashlytics.log(Log.DEBUG,"Global Lamrim record","Parse string ["+str+"] to time ["+section[1]+":"+section[2]+"]");
 		int res[] ={section[0],section[1]+section[2]};
 		return res;
 	}
@@ -58,7 +60,7 @@ public class GlRecord {
 		if(split[1].startsWith("LL")){
 			line=Integer.parseInt(split[1].replace("LL", ""));
 			int contentLineCount=TheoryData.content[page].split("\n").length;
-			System.out.println("Content lines of page "+page+" is "+contentLineCount);
+			Crashlytics.log(Log.DEBUG, "Global Lamrim record","Content lines of page "+page+" is "+contentLineCount);
 			line=contentLineCount-line;
 		}else{
 			line=Integer.parseInt(split[1].replace("L", ""))-1;

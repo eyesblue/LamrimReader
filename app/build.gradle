@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 27
@@ -7,8 +9,8 @@ android {
         applicationId "eyes.blue"
         minSdkVersion 14
         targetSdkVersion 27
-        versionCode 203
-        versionName "1.5.0"
+        versionCode 206
+        versionName "1.5.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -21,29 +23,31 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
+
+    useLibrary 'org.apache.http.legacy'
 }
+
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile files('libs/commons-lang3-3.1.jar')
-    compile files('libs/javacsv.jar')
-    compile files('libs/libGoogleAnalyticsServices.jar')
-    compile project(':colorPickerView')
-    compile project(':newQuickAction')
-    compile project(':robotoCalendarLibrary')
-    compile project(':wVersionManager')
-    compile 'com.android.support:appcompat-v7:27.1.1'
-    compile 'com.android.support:support-v4:27.1.1'
-    compile 'com.google.firebase:firebase-core:12.0.1'
-    compile 'com.google.firebase:firebase-crash:12.0.1'
-    compile 'com.google.firebase:firebase-invites:12.0.1'
-    testCompile 'junit:junit:4.12'
+    implementation files('libs/commons-lang3-3.1.jar')
+    implementation files('libs/javacsv.jar')
+    implementation project(':colorPickerView')
+    implementation project(':newQuickAction')
+    implementation project(':robotoCalendarLibrary')
+    implementation project(':wVersionManager')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.google.firebase:firebase-core:12.0.1'
+    implementation 'com.google.firebase:firebase-crash:12.0.1'
+    implementation 'com.google.firebase:firebase-invites:12.0.1'
+    androidTestImplementation 'junit:junit:4.12'
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.1'
 }
 
 
 
 
-apply plugin: 'com.google.gms.google-services'

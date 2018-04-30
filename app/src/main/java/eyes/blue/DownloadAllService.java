@@ -22,9 +22,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-
-import com.google.firebase.analytics.FirebaseAnalytics;
-
+import com.crashlytics.android.Crashlytics;
 import eyes.blue.RemoteDataSource.RemoteSource;
 
 
@@ -43,7 +41,6 @@ public class DownloadAllService extends IntentService {
 	boolean cancelled=false, hasFailure=false;
 	PowerManager powerManager=null;
 	WakeLock wakeLock = null;
-	private FirebaseAnalytics mFirebaseAnalytics;
 	
 	public DownloadAllService() {
 		super("DownloadAllService");
@@ -54,20 +51,19 @@ public class DownloadAllService extends IntentService {
 	
 	@Override
     public void onDestroy() {
-		Log.d(getClass().getName(), "Stop download all service");
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Stop download all service");
 		cancelled=true;
 		removeNotification();
     }
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Log.d(getClass().getName(), "Into onHandleIntent of download all service");
-		mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+		Crashlytics.log(Log.DEBUG, getClass().getName(), "Into onHandleIntent of download all service");
 
 		fsm=new FileSysManager(getBaseContext());
 		defaultThreads=intent.getIntExtra("threadCount", 4);
 		if(defaultThreads<1){
-			Log.d(getClass().getName(), "DownloadAllService receive incorrect thread count "+defaultThreads+", skip service.");
+			Crashlytics.log(Log.DEBUG,getClass().getName(), "DownloadAllService receive incorrect thread count "+defaultThreads+", skip service.");
 			return;
 		}
 		threadPool = new Downloader[defaultThreads];
@@ -86,19 +82,19 @@ public class DownloadAllService extends IntentService {
 		}
 		
 		if(isAlive){
-			Log.d(getClass().getName(), "Task downloading, skip the start command.");
+			Crashlytics.log(Log.DEBUG,getClass().getName(), "Task downloading, skip the start command.");
 			return;
 		}
 		
 		runtime = getSharedPreferences(getString(R.string.runtimeStateFile), 0);
 		
 /*		if(downloader!=null && downloader.getStatus()==AsyncTask.Status.RUNNING){
-			Log.d(getClass().getName(), "Task downloading, skip the start command.");
+			Crashlytics.log(Log.DEBUG,getClass().getName(), "Task downloading, skip the start command.");
 			return;
 		}
 */		
 		if(!wakeLock.isHeld()){wakeLock.acquire();}
-		Log.d(getClass().getName(), "Start download all service");
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Start download all service");
 		for(int i=0;i<defaultThreads;i++){
 			threadPool[i]=new Downloader(i);
 			threadPool[i].start();
@@ -108,7 +104,7 @@ public class DownloadAllService extends IntentService {
 		reportServiceStart();
 		
 		while (true) {
-			Log.d(getClass().getName(),	"Main thread of service wake up, download index=" + downloadIndex);
+			Crashlytics.log(Log.DEBUG,getClass().getName(),	"Main thread of service wake up, download index=" + downloadIndex);
 			boolean alive = false;
 			synchronized (threadPool) {
 				for (int i = 0; i < defaultThreads; i++)
@@ -148,7 +144,7 @@ public class DownloadAllService extends IntentService {
 				}
 			} // synchroinzed
 		} // while
-		Log.d(getClass().getName(),"Download All Service terminate.");
+		Crashlytics.log(Log.DEBUG,getClass().getName(),"Download All Service terminate.");
 	}
 	
 
@@ -290,7 +286,7 @@ public class DownloadAllService extends IntentService {
 
 	    		synchronized(threadPool){
 	    			if(downloadIndex>=SpeechData.name.length){
-	    				Log.d("DownloadAllThread","Thread"+tId+" Terminate, End of media index reached.");
+	    				Crashlytics.log(Log.DEBUG,"DownloadAllThread","Thread"+tId+" Terminate, End of media index reached.");
 	    				return ;
 	    			}
 	    		
@@ -298,17 +294,17 @@ public class DownloadAllService extends IntentService {
 	    			downloadIndex++;
 	    			threadPool.notifyAll();
 	    		}
-	    		Log.d("DownloadAllThread","Thread"+tId+" get download task index "+downloadIndex);
+	    		Crashlytics.log(Log.DEBUG,"DownloadAllThread","Thread"+tId+" get download task index "+downloadIndex);
 	    		
 	    		
 	    		if(cancelled){
-	    			Log.d(getClass().getName(),"Thread_"+tId+" Terminate, Task has canceled.");
+	    			Crashlytics.log(Log.DEBUG,getClass().getName(),"Thread_"+tId+" Terminate, Task has canceled.");
 	    			return;
 	    		}
 
 				File mediaFile=fsm.getLocalMediaFile(downloadingIndex);
 				if(mediaFile==null){
-					Log.d(getClass().getName(),"The storage media has not usable, skip.");
+					Crashlytics.log(Log.DEBUG,getClass().getName(),"The storage media has not usable, skip.");
 					reportStorageUnusable();
 					return;
 				}
@@ -325,7 +321,7 @@ public class DownloadAllService extends IntentService {
 		}
 		
 		public boolean download(String url, String outputPath){
-	        Log.d(getClass().getName(),"Download file from "+url);
+	        Crashlytics.log(Log.DEBUG,getClass().getName(),"Download file from "+url);
 	        File tmpFile=new File(outputPath+getString(R.string.downloadTmpPostfix));
 	        long startTime=System.currentTimeMillis(), respWaitStartTime;
 
@@ -337,7 +333,7 @@ public class DownloadAllService extends IntentService {
 	        HttpGet httpget = new HttpGet(url);
 	        HttpResponse response=null;
 	        int respCode=-1;
-	        if(cancelled){Log.d(getClass().getName(),"User canceled, download procedure skip!");return false;}
+	        if(cancelled){Crashlytics.log(Log.DEBUG,getClass().getName(),"User canceled, download procedure skip!");return false;}
 	       
 //	        setProgressMsg(activity.getString(R.string.dlgTitleConnecting),String.format(activity.getString(R.string.dlgDescConnecting), SpeechData.getNameId(mediaIndex),(type == activity.getResources().getInteger(R.integer.MEDIA_TYPE))?"音檔":"字幕"));
 	       
@@ -364,12 +360,12 @@ public class DownloadAllService extends IntentService {
 
 	        if(cancelled){
 	        	httpclient.getConnectionManager().shutdown();
-	        	Log.d(getClass().getName(),"User canceled, download procedure skip!");
+	        	Crashlytics.log(Log.DEBUG,getClass().getName(),"User canceled, download procedure skip!");
 	        	return false;
 	        }
-			Util.fireTimming(DownloadAllService.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "DOWNLOAD_RESPONSE_TIME", (int)(System.currentTimeMillis()-respWaitStartTime));
+			Crashlytics.setDouble("ResponseTimeOfDownload", (System.currentTimeMillis()-respWaitStartTime));
 
-	        HttpEntity httpEntity=response.getEntity();
+			HttpEntity httpEntity=response.getEntity();
 	        InputStream is=null;
 	        try {
 	                is = httpEntity.getContent();
@@ -387,7 +383,7 @@ public class DownloadAllService extends IntentService {
 	        }
 	       
 	        if(cancelled){
-	                Log.d(getClass().getName(),"User canceled, download procedure skip!");
+	                Crashlytics.log(Log.DEBUG,getClass().getName(),"User canceled, download procedure skip!");
 	                try {   is.close();     } catch (IOException e) {e.printStackTrace();}
 	                httpclient.getConnectionManager().shutdown();
 	                tmpFile.delete();
@@ -399,7 +395,7 @@ public class DownloadAllService extends IntentService {
 	        try {
 	                fos=new FileOutputStream(tmpFile);
 	        } catch (FileNotFoundException e1) {
-	                Log.d(getClass().getName(),"File Not Found Exception happen while create output temp file ["+tmpFile.getName()+"] !");
+	                Crashlytics.log(Log.DEBUG,getClass().getName(),"File Not Found Exception happen while create output temp file ["+tmpFile.getName()+"] !");
 	                httpclient.getConnectionManager().shutdown();
 	                try {   is.close();     } catch (IOException e) {e.printStackTrace();}
 	                tmpFile.delete();
@@ -412,14 +408,14 @@ public class DownloadAllService extends IntentService {
 	        	try {   is.close();     } catch (IOException e) {e.printStackTrace();}
 	        	try {   fos.close();    } catch (IOException e) {e.printStackTrace();}
 	        	tmpFile.delete();
-	        	Log.d(getClass().getName(),"User canceled, download procedure skip!");
+	        	Crashlytics.log(Log.DEBUG,getClass().getName(),"User canceled, download procedure skip!");
 	        	return false;
 	        }
 
 	        try {
 		
 	        	byte[] buf=new byte[bufLen];
-	        	Log.d(getClass().getName(),Thread.currentThread().getName()+": Start read stream from remote site, is="+((is==null)?"NULL":"exist")+", buf="+((buf==null)?"NULL":"exist"));
+	        	Crashlytics.log(Log.DEBUG,getClass().getName(),Thread.currentThread().getName()+": Start read stream from remote site, is="+((is==null)?"NULL":"exist")+", buf="+((buf==null)?"NULL":"exist"));
 	        	while((readLen=is.read(buf))!=-1){
 	        		counter+=readLen;
 	        		fos.write(buf,0,readLen);
@@ -429,7 +425,7 @@ public class DownloadAllService extends IntentService {
 	                	try {   is.close();     } catch (IOException e) {e.printStackTrace();}
 	                	try {   fos.close();    } catch (IOException e) {e.printStackTrace();}
 	                	tmpFile.delete();
-	                	Log.d(getClass().getName(),"User canceled, download procedure skip!");
+	                	Crashlytics.log(Log.DEBUG,getClass().getName(),"User canceled, download procedure skip!");
 	                	return false;
 	                }
 	        	}
@@ -442,7 +438,7 @@ public class DownloadAllService extends IntentService {
 	        	try {   fos.close();    } catch (IOException e2) {e2.printStackTrace();}
 	        	tmpFile.delete();
 	        	e.printStackTrace();
-	        	Log.d(getClass().getName(),Thread.currentThread().getName()+": IOException happen while download media.");
+	        	Crashlytics.log(Log.DEBUG,getClass().getName(),Thread.currentThread().getName()+": IOException happen while download media.");
 	        	return false;
 	        }
 
@@ -453,12 +449,12 @@ public class DownloadAllService extends IntentService {
 	        }
 
 	        int spend=(int) (System.currentTimeMillis()-startTime);
-			Util.fireTimming(DownloadAllService.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "DOWNLOAD_SPEND_TIME", (int)(System.currentTimeMillis()-respWaitStartTime));
+			Crashlytics.setDouble("SpendTimeOfDownload", (System.currentTimeMillis()-respWaitStartTime));
 
 	        // rename the protected file name to correct file name
 	        tmpFile.renameTo(new File(outputPath));
 	        httpclient.getConnectionManager().shutdown();
-	        Log.d(getClass().getName(),Thread.currentThread().getName()+": Download finish, return true.");
+	        Crashlytics.log(Log.DEBUG,getClass().getName(),Thread.currentThread().getName()+": Download finish, return true.");
 	        return true;
 		}
 	}

@@ -23,6 +23,14 @@
   	<div class='title'><p><a href="http://www.facebook.com/lamrimreader">執行問題反應區</a></p></div>
   	<div class='title'><p><a href="http://lamrimreader.eyes-blue.com/">計畫首頁</a></p></div>
 
+$206
+% Version 1.5.3
+  _ 2018-4-30
+  * 修正載入音檔後強制關閉問題。
+  * 修正開啟App時強制關閉問題。
+  * 修改資源下載位置。
+  * 移除TrustManager相關程式碼。
+
 $203
 % Version 1.5.0
   _ 2018-4-17

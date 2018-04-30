@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
+
 public class BaseDialogs {
 	
 	//public static void showEditRegionDialog(final Activity activity,final int mediaIndex, final int startTimeMs, final int endTimeMs,final String titleStr,final SimpleAdapter adapter, final int recIndex){
@@ -45,7 +47,7 @@ public class BaseDialogs {
 					}
 				}
 				else {
-					Log.d(getClass().getName(),"theoryStartPage="+theoryStartPage+", theoryStartLine="+theoryStartLine+", theoryEndPage="+theoryEndPage+", theoryEndLine="+theoryEndLine);
+					Crashlytics.log(Log.DEBUG, getClass().getName(),"theoryStartPage="+theoryStartPage+", theoryStartLine="+theoryStartLine+", theoryEndPage="+theoryEndPage+", theoryEndLine="+theoryEndLine);
 					if(theoryStartPage != -1 && theoryStartLine != -1 && theoryEndPage != -1 && theoryEndLine != -1){
 						Calendar c = Calendar.getInstance();
 						int month = c.get(Calendar.MONTH) + 1;
@@ -112,7 +114,7 @@ public class BaseDialogs {
 				
 				// Check if the same page, but end line greater then start line
 				if(theoryPageEnd == theoryPageStart && inEndLine < inStartLine){
-					Log.d(getClass().getName(),"User input the same page, but line number end > start.");
+					Crashlytics.log(Log.DEBUG, getClass().getName(),"User input the same page, but line number end > start.");
 					showSimpleErrorDialog(activity, activity.getString(R.string.dlgEndLineGreaterThenStart));
 					return;
 				}
@@ -124,14 +126,14 @@ public class BaseDialogs {
 				}
 				
 				if(recIndex==-1){
-					Log.d(getClass().getName(),"Save record");
+					Crashlytics.log(Log.DEBUG, getClass().getName(),"Save record");
 					RegionRecord.addRegionRecord(activity, 0, regionTitle.getText().toString(), mediaStart, startTimeMs, mediaEnd, endTimeMs, theoryPageStart, inStartLine, theoryPageEnd, inEndLine, info);
 					}
 				else
 					RegionRecord.updateRecord(activity, 0, regionTitle.getText().toString(), mediaStart, startTimeMs, mediaEnd, endTimeMs, theoryPageStart, inStartLine, theoryPageEnd, inEndLine, recIndex);
 
 				if(positiveListener!=null){
-					Log.d(getClass().getName(),"Region data saved, notify dataset changed.");
+					Crashlytics.log(Log.DEBUG, getClass().getName(),"Region data saved, notify dataset changed.");
 					positiveListener.run();
 				}
 				dialog.dismiss();

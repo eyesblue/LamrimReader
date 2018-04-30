@@ -37,6 +37,8 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.lang.ref.WeakReference;
 import java.util.Formatter;
 import java.util.Locale;
@@ -137,6 +139,7 @@ public class MediaControllerView extends FrameLayout {
 
     @Override
     public void onFinishInflate() {
+        super.onFinishInflate();
         if (mRoot != null)
             initControllerView(mRoot);
     }
@@ -573,11 +576,17 @@ public class MediaControllerView extends FrameLayout {
                 return;
             }
 
-            long duration = mPlayer.getDuration();
-            long newposition = (duration * progress) / 1000L;
-            mPlayer.seekTo( (int) newposition);
-            if (mCurrentTime != null)
-                mCurrentTime.setText(stringForTime( (int) newposition));
+            try {
+                long duration = mPlayer.getDuration();
+                long newposition = (duration * progress) / 1000L;
+                mPlayer.seekTo((int) newposition);
+                if (mCurrentTime != null)
+                    mCurrentTime.setText(stringForTime((int) newposition));
+            }catch(Exception e){
+                Util.fireException("Error happen in MediaControllerView.onProgressChanged: ", e);
+                Crashlytics.log(Log.ERROR, getClass().getName(), e.getLocalizedMessage());
+                Util.showErrorToast(mContext, mContext.getString(R.string.errPlayerRecycled), 100);
+            }
         }
 
         public void onStopTrackingTouch(SeekBar bar) {
@@ -672,13 +681,13 @@ public class MediaControllerView extends FrameLayout {
 
     private void installPrevNextListeners() {
         if (mNextButton != null) {
-                Log.d(getClass().getName(),"Set setOnClickListener on NextButton");
+                Crashlytics.log(Log.DEBUG,getClass().getName(),"Set setOnClickListener on NextButton");
             mNextButton.setOnClickListener(mNextListener);
             mNextButton.setEnabled(mNextListener != null);
         }
 
         if (mPrevButton != null) {
-                Log.d(getClass().getName(),"Set setOnClickListener on PrevButton");
+                Crashlytics.log(Log.DEBUG,getClass().getName(),"Set setOnClickListener on PrevButton");
             mPrevButton.setOnClickListener(mPrevListener);
             mPrevButton.setEnabled(mPrevListener != null);
         }
@@ -690,7 +699,7 @@ public class MediaControllerView extends FrameLayout {
         mListenersSet = true;
 
         if (mRoot != null) {
-        	Log.d(getClass().getName(),"Call installPrevNextListeners()");
+        	Crashlytics.log(Log.DEBUG,getClass().getName(),"Call installPrevNextListeners()");
             installPrevNextListeners();
            
             if (mNextButton != null && !mFromXml) {

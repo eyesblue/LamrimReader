@@ -35,6 +35,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 public class StorageManageActivity extends AppCompatActivity {
@@ -55,18 +56,15 @@ public class StorageManageActivity extends AppCompatActivity {
     long intFreeB, extFreeB, intTotal, extTotal, intUsed, extUsed;
     String userSpecDir, logTag=getClass().getName();
     Runnable PermissionGrantedJob = null;
-    private FirebaseAnalytics mFirebaseAnalytics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.storage_manage);
-        Log.d(getClass().getName(), "Into onCreate");
+        Crashlytics.log(Log.DEBUG,getClass().getName(), "Into onCreate");
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 //		PowerManager powerManager=(PowerManager) getSystemService(Context.POWER_SERVICE);
 //		wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, getClass().getName());
-
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         runtime = getSharedPreferences(getString(R.string.runtimeStateFile), 0);
         fsm = new FileSysManager(this);
@@ -249,7 +247,7 @@ public class StorageManageActivity extends AppCompatActivity {
             @Override
             public void onClick(View arg0) {// 此處需要完整的寫入權限
                 btnMoveToUserSpy.setEnabled(false);
-                Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "MOVE_FILE_TO_SPECIFY_FOLDER_CLICK");
+                Crashlytics.setString("ButtonClick", "MoveFileToSpecifyFolder");
 
                 // 把要執行的行為先封裝進 Runnable，若已經有寫入權限，則本地執行此Runnable，若無則要求寫入權限(isPermissionPass())，並在onRequestPermissionsResult中獲取權限後執行此Runnable。
                 PermissionGrantedJob = new Runnable() {
@@ -262,7 +260,7 @@ public class StorageManageActivity extends AppCompatActivity {
                             return;
                         }
 
-                        Log.d(getClass().getName(), "Create folder: " + path);
+                        Crashlytics.log(Log.DEBUG,getClass().getName(), "Create folder: " + path);
                         File filePath = new File(path);
                         filePath.mkdirs();
                         if (!filePath.exists() || !filePath.isDirectory() || !filePath.canWrite()) {
@@ -278,12 +276,12 @@ public class StorageManageActivity extends AppCompatActivity {
                         if (ext != null)
                             srcList.add(ext + File.separator + getString(R.string.audioDirName));
 
-                        Log.d(getClass().getName(), "There are " + srcList.size() + " src folder for move file.");
+                        Crashlytics.log(Log.DEBUG,getClass().getName(), "There are " + srcList.size() + " src folder for move file.");
                         Intent intent = new Intent(StorageManageActivity.this, MoveFileService.class);
                         intent.putStringArrayListExtra("srcDirs", srcList);
                         intent.putExtra("destDir", path);
 
-                        Log.d(getClass().getName(), "Start move file service.");
+                        Crashlytics.log(Log.DEBUG,getClass().getName(), "Start move file service.");
 
                         // While user press the move button that mean the path is specified.
                         SharedPreferences.Editor editor = runtime.edit();
@@ -294,7 +292,7 @@ public class StorageManageActivity extends AppCompatActivity {
                         //Util.showInfoPopupWindow(StorageManageActivity.this, "背景移動中，請檢視通知列以瞭解進度，移動過程中請勿執行其他操作。");
                         BaseDialogs.showSimpleMsgDialog(StorageManageActivity.this, getString(R.string.dlgMoveFileTitle), getString(R.string.dlgMoveFileMsg));
                         startService(intent);
-                        Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "MOVE_FILE_TO_SPECIFY_FOLDER_START_SERVICE");
+                        Crashlytics.setString("ButtonClick", "MoveFileToSpecifyFolderStartService");
                         refreshUsage();
                     }
                 };
@@ -357,7 +355,7 @@ public class StorageManageActivity extends AppCompatActivity {
             public void onClick(View v) {
                 final SharedPreferences.Editor editor = runtime.edit();
                 if (!isUseThirdDir) {
-                    Log.d(getClass().getName(), "is user specify the third dir? " + isUseThirdDir);
+                    Crashlytics.log(Log.DEBUG,getClass().getName(), "is user specify the third dir? " + isUseThirdDir);
                     editor.putBoolean(getString(R.string.isUseThirdDir), false);
                     editor.apply();
                     finish();
@@ -442,7 +440,7 @@ public class StorageManageActivity extends AppCompatActivity {
         intSpeechPathInfo.setText(intSpeechDir);
         intSubtitlePathInfo.setText(intSubtitleDir);
 
-        Log.d(getClass().getName(), "Leave onCreate");
+        Crashlytics.log(Log.DEBUG,getClass().getName(), "Leave onCreate");
     }
 
     // 注意！此處只檢查到讀取權限，不包含檢查寫入權限
@@ -534,14 +532,11 @@ public class StorageManageActivity extends AppCompatActivity {
     @Override
     public void finish() {
         boolean isUserSpecifyDir = runtime.getBoolean(getString(R.string.isUseThirdDir), false);
-        if (isUserSpecifyDir){
-            Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "USER_SPECIFY_DIR_TRUE");
-            Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "USER_SPECIFY_DIR_PATH: "+runtime.getString(getString(R.string.userSpecifySpeechDir), null));
-        }
+        if (isUserSpecifyDir)
+            Crashlytics.setString("UserSpecifyDirPath", runtime.getString(getString(R.string.userSpecifySpeechDir),null));
+        else
+            Crashlytics.setString("DefaultMediaPath", fsm.getSysDefMediaDir());
 
-        else {
-            Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "DEFAULT_MEDIA_PATH: "+fsm.getSysDefMediaDir());
-        }
         super.finish();
     }
 
@@ -579,7 +574,7 @@ public class StorageManageActivity extends AppCompatActivity {
 			public void run() {
 				try {
 					Thread.sleep(500);
-					Log.d(getClass().getName(),"Set path the EditText: "+filePath);
+					Crashlytics.log(Log.DEBUG,getClass().getName(),"Set path the EditText: "+filePath);
 					runOnUiThread(new Runnable(){
 						@Override
 						public void run() {
@@ -669,7 +664,7 @@ public class StorageManageActivity extends AppCompatActivity {
     }
 
     private String numToKMG(long num) {
-        Log.d(getClass().getName(), "Cac: " + num);
+        Crashlytics.log(Log.DEBUG,getClass().getName(), "Cac: " + num);
         String[] unit = {"", "K", "M", "G", "T"};
         String s = "" + num;
         int len = s.length();
@@ -679,7 +674,7 @@ public class StorageManageActivity extends AppCompatActivity {
 
         int index = sign * 3;
         String result = s.substring(0, s.length() - index) + '.' + s.charAt(index) + unit[sign];
-        Log.d(getClass().getName(), "Num= " + s + ", Length: " + s.length() + ", result=" + result);
+        Crashlytics.log(Log.DEBUG,getClass().getName(), "Num= " + s + ", Length: " + s.length() + ", result=" + result);
         return result;
     }
 

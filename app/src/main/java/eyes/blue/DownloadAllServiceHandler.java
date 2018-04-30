@@ -11,6 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.crashlytics.android.Crashlytics;
+
 public class DownloadAllServiceHandler extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -37,7 +39,7 @@ public class DownloadAllServiceHandler extends Activity {
 				
 				Intent intent = new Intent(DownloadAllServiceHandler.this, DownloadAllService.class);
 				intent.putExtra("cmd", "stop");
-				Log.d(getClass().getName(),"Stop download all service.");
+				Crashlytics.log(Log.DEBUG,getClass().getName(),"Stop download all service.");
 		        stopService(intent);
 		        removeNotification();
 		        finish();

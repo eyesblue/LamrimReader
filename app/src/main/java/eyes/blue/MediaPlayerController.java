@@ -132,30 +132,30 @@ public class MediaPlayerController implements MediaControllerView.MediaPlayerCon
 				    switch(what){
 				    case MediaPlayer.MEDIA_ERROR_UNKNOWN:
 				    	whatStr="MEDIA_ERROR_UNKNOWN";
-				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerUnknowErr));
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerUnknowErr), 100);
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
 				    	whatStr="MEDIA_ERROR_SERVER_DIED";
-				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerServerDie));
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerServerDie), 100);
 				    	break;
 				    }
 				    
 				    switch(extra){
 				    case MediaPlayer.MEDIA_ERROR_IO:
 				    	extraStr="MEDIA_ERROR_IO";
-				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerErrorIO));
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerErrorIO), 100);
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_MALFORMED:
 				    	extraStr="MEDIA_ERROR_MALFORMED";
-				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerMalformed));
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerMalformed), 100);
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_UNSUPPORTED:
 				    	extraStr="MEDIA_ERROR_UNSUPPORTED";
-						Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerUnsupported));
+						Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerUnsupported), 100);
 				    	break;
 				    case MediaPlayer.MEDIA_ERROR_TIMED_OUT:
 				    	extraStr="MEDIA_ERROR_TIMED_OUT";
-				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerTimeOut));
+				    	Util.showErrorToast(activity, activity.getString(R.string.msgMediaPlayerTimeOut), 100);
 				    	break;
 				    }
 				    

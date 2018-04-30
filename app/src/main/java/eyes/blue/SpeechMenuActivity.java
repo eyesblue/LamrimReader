@@ -55,8 +55,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
-
+import com.crashlytics.android.Crashlytics;
 import eyes.blue.RemoteDataSource.RemoteSource;
 
 public class SpeechMenuActivity extends AppCompatActivity {
@@ -84,13 +83,11 @@ public class SpeechMenuActivity extends AppCompatActivity {
 	private DownloadAllServiceReceiver downloadAllServiceReceiver=null;
 	IntentFilter downloadAllServiceIntentFilter=null;
 	View rootView =null;
-	private FirebaseAnalytics mFirebaseAnalytics;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.speech_menu);
-		mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
 		rootView = findViewById(R.id.speechMenuRootView);
 		speechList=(ListView) findViewById(R.id.list);
@@ -123,7 +120,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 				switch(actionId){
 				case PLAY:
 					resultAndPlay(manageItemIndex);
-					Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "QUICK_ACTION_MENU_PLAY");
+                    Crashlytics.setString("ButtonClick", "QuickActionMenuPlay");
 					break;
 				case UPDATE:
 					DialogInterface.OnClickListener updateListener=new DialogInterface.OnClickListener(){
@@ -133,7 +130,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 							File f=fsm.getLocalMediaFile(manageItemIndex);
 							if(f!=null && !fsm.isFromUserSpecifyDir(f))f.delete();
 							downloadSrc(manageItemIndex);
-							Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "QUICK_ACTION_MENU_UPDATE");
+                            Crashlytics.setString("ButtonClick", "QuickActionMenuUpdate");
 						}};
 
 					BaseDialogs.showDelWarnDialog(SpeechMenuActivity.this, getString(R.string.file), updateListener, null);
@@ -145,13 +142,13 @@ public class SpeechMenuActivity extends AppCompatActivity {
 							File f=fsm.getLocalMediaFile(manageItemIndex);
 							if(f!=null && !fsm.isFromUserSpecifyDir(f))f.delete();
 							updateUi(manageItemIndex,true);
-							Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "QUICK_ACTION_MENU_DELETE");
+                            Crashlytics.setString("ButtonClick", "QuickActionMenuDelete");
 						}};
 
 					BaseDialogs.showDelWarnDialog(SpeechMenuActivity.this, getString(R.string.file), deleteListener, null);
 					break;
 				case CANCEL:
-					Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "QUICK_ACTION_MENU_CANCEL");
+                    Crashlytics.setString("ButtonClick", "QuickActionMenuCancel");
 					break;
 				};
 			}
@@ -235,7 +232,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 				if(speechFlags[position]) fileReadyQAction.show(v);
 				else fileNotReadyQAction.show(v);
 
-				Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "SHOW_QUICK_ACTION_MENU");
+                Crashlytics.setString("ButtonClick", "ShowQuickActionMenu");
 				return true;
 			}
 
@@ -259,7 +256,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 			public void onClick(View arg0) {
 				if(fireLock())return;
 				maintain();
-				Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "MAINTAIN_FILES_BUTTON_CLICK");
+                Crashlytics.setString("ButtonClick", "MaintainFilesButtonClicked");
 			}});
 
 		btnManageStorage.setOnClickListener(new View.OnClickListener (){
@@ -269,7 +266,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 				final Intent storageManage = new Intent(SpeechMenuActivity.this, StorageManageActivity.class);
 				startActivity(storageManage);
 				buttonUpdater.cancel();
-				Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "MANAGE_STORAGE_BUTTON_CLICK");
+                Crashlytics.setString("ButtonClick", "ManageStorageButtonClicked");
 			}});
 
 	 }
@@ -363,7 +360,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 			Intent playWindow = new Intent();
 			playWindow.putExtra("reloadLastState", true);
 			setResult(Activity.RESULT_OK, playWindow);
-			Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "RELOAD_LAST_STATE");
+            Crashlytics.setString("ButtonClick", "ReloadLastState");
 			finish();
 		}
 		return true;
@@ -654,7 +651,7 @@ public class SpeechMenuActivity extends AppCompatActivity {
 							synchronized(btnDownloadAll){
 								if(fireLock())return;
 								downloadAllSrc();
-								Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.BUTTON_CLICK, "DOWNLOAD_ALL_BUTTON_CLICK");
+                                Crashlytics.setString("ButtonClick", "DownloadAllButtonClicked");
 							}
 						}});
 				}
@@ -993,7 +990,8 @@ public class SpeechMenuActivity extends AppCompatActivity {
 						"User canceled, download procedure skip!");
 				return false;
 			}
-			Util.fireTimming(SpeechMenuActivity.this, mFirebaseAnalytics, logTag, Util.SPEND_TIME, "INITIAL_TIME_OF_MAIN_ACTIVITY", (int)(System.currentTimeMillis() - respWaitStartTime));
+
+            Crashlytics.setDouble("ResponseTimeOfDownload", (System.currentTimeMillis() - respWaitStartTime));
 			HttpEntity httpEntity = response.getEntity();
 			InputStream is = null;
 			try {

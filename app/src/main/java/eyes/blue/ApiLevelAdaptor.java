@@ -56,11 +56,10 @@ public class ApiLevelAdaptor {
                     );
 
 //            int notifyId = 1;
-            Notification notification = new Notification.Builder(context)
+            Notification notification = new Notification.Builder(context, channelId)
                     .setContentTitle(title)
                     .setContentText(contentText)
                     .setSmallIcon(R.drawable.ic_launcher)
-                    .setChannelId(channelId)
                     .setContentIntent(notifyIntent)
                     .build();
 

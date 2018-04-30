@@ -17,6 +17,8 @@ import android.util.Log;
 import android.view.Gravity;
 import android.widget.SeekBar;
 
+import com.crashlytics.android.Crashlytics;
+
 public class RegionableSeekBar extends SeekBar {
 	Context context = null;
 	String logTag="RegionableSeekBar";
@@ -89,39 +91,39 @@ public class RegionableSeekBar extends SeekBar {
 			drawRegionTimes=0;
 			return;
 		}
-		Log.d(logTag,"Draw Region mode: start = "+start+", region end = "+end);
+		Crashlytics.log(Log.DEBUG, logTag,"Draw Region mode: start = "+start+", region end = "+end);
         LayerDrawable layer = (LayerDrawable) getProgressDrawable();
         Drawable drawableFg = (Drawable)layer.findDrawableByLayerId(android.R.id.progress);
         Drawable drawableBg = (Drawable)layer.findDrawableByLayerId(android.R.id.background);
 
 
         
-        Log.d(logTag,"There are "+layer.getNumberOfLayers()+" layer in SeekBar object, forground: "+drawableFg+", background: "+drawableBg);
+        Crashlytics.log(Log.DEBUG, logTag,"There are "+layer.getNumberOfLayers()+" layer in SeekBar object, forground: "+drawableFg+", background: "+drawableBg);
        
         Rect fgBound=drawableFg.copyBounds();
         Rect bgBound=drawableBg.copyBounds();
        
         // The view never draw, skip draw.
         if(fgBound.height()==0){
-                Log.d(logTag,"The seekbar not layouted, skip");
+                Crashlytics.log(Log.DEBUG, logTag,"The seekbar not layouted, skip");
                 return ;
         }
 
-        Log.d(logTag,"forgound: bound.right="+fgBound.right+", bound.left="+fgBound.left+", bound.top="+fgBound.top+", bound.botton="+fgBound.bottom+", IntrinsicWidth="+drawableFg.getIntrinsicWidth()+",IntrinsicHeight= "+drawableFg.getIntrinsicHeight()+", rect.height="+fgBound.height()+", rect.width="+fgBound.width());
-        Log.d(logTag,"backgound: bound.right="+bgBound.right+", drawableFg.getIntrinsicWidth="+drawableBg.getIntrinsicWidth());
+        Crashlytics.log(Log.DEBUG, logTag,"forgound: bound.right="+fgBound.right+", bound.left="+fgBound.left+", bound.top="+fgBound.top+", bound.botton="+fgBound.bottom+", IntrinsicWidth="+drawableFg.getIntrinsicWidth()+",IntrinsicHeight= "+drawableFg.getIntrinsicHeight()+", rect.height="+fgBound.height()+", rect.width="+fgBound.width());
+        Crashlytics.log(Log.DEBUG, logTag,"backgound: bound.right="+bgBound.right+", drawableFg.getIntrinsicWidth="+drawableBg.getIntrinsicWidth());
        
-        Log.d(logTag,"Debug: drawableFg: "+drawableFg+", copyBounds(): "+ drawableFg.copyBounds()+", getIntrinsicWidth: "+drawableFg.getIntrinsicWidth());
+        Crashlytics.log(Log.DEBUG, logTag,"Debug: drawableFg: "+drawableFg+", copyBounds(): "+ drawableFg.copyBounds()+", getIntrinsicWidth: "+drawableFg.getIntrinsicWidth());
        
         //int seekBarStartPosition=Math.round ((regionStartMs==-1)?fgBound.left:(float)regionStartMs/mediaPlayer.getDuration()*fgBound.width());
         int seekBarStartPosition=Math.round ((start==-1)?fgBound.left:(float)start/max*fgBound.width());
         // Add one pixel avoid while enableEnd = enableStart, there will throw exception while copy pixel.
         int seekBarEndPosition=Math.round (((end==-1)?bgBound.right:(float)end/max*bgBound.width())+1);
-        Log.d(logTag,"Set start pixel and end pixel: regionStartMs="+start+", seekBarStartPosition="+seekBarStartPosition+", regionEndMs="+end+", seekBarEndPosition="+seekBarEndPosition);
+        Crashlytics.log(Log.DEBUG, logTag,"Set start pixel and end pixel: regionStartMs="+start+", seekBarStartPosition="+seekBarStartPosition+", regionEndMs="+end+", seekBarEndPosition="+seekBarEndPosition);
        
-        Log.d(logTag,"Create forground rec: width="+(seekBarEndPosition-seekBarStartPosition)+", height="+fgBound.bottom);
+        Crashlytics.log(Log.DEBUG, logTag,"Create forground rec: width="+(seekBarEndPosition-seekBarStartPosition)+", height="+fgBound.bottom);
         //fgBmap=getNinepatch(R.drawable.scrubber_primary_holo, seekBarEndPosition-seekBarStartPosition,fgBound.bottom, activity);
         Bitmap fgBmap=getNinepatch(R.drawable.scrubber_primary_segment_mode, bgBound.width(), bgBound.height(), context);
-        Log.d(logTag,"Create background rec: width="+bgBound.right+", height="+bgBound.bottom);
+        Crashlytics.log(Log.DEBUG, logTag,"Create background rec: width="+bgBound.right+", height="+bgBound.bottom);
         Bitmap bgBmap=getNinepatch(R.drawable.scrubber_track_holo_dark, bgBound.width(), bgBound.height(), context);
        
         
@@ -132,7 +134,7 @@ public class RegionableSeekBar extends SeekBar {
         Canvas bgCanvas=new Canvas(bgBmap);
 
        
-        Log.d(logTag,"Copy forground rect to background: x1="+seekBarStartPosition+", y1="+ bgBound.top+", x2="+ seekBarEndPosition+", y2="+ bgBound.bottom);
+        Crashlytics.log(Log.DEBUG, logTag,"Copy forground rect to background: x1="+seekBarStartPosition+", y1="+ bgBound.top+", x2="+ seekBarEndPosition+", y2="+ bgBound.bottom);
         //Rect src = new Rect(0, 0, fgBmap.getWidth(), fgBmap.getHeight());
 //      int len=seekBarEndPosition-seekBarStartPosition;
 //      int h=fgBound.height();
@@ -195,8 +197,8 @@ public class RegionableSeekBar extends SeekBar {
 	}
 	
 	protected void drawNormalMode(Canvas canvas){
-		Log.d(logTag,"Release the region select mode.");
-        Log.d(logTag,"Region start = "+start+", region end = "+end);
+		Crashlytics.log(Log.DEBUG, logTag,"Release the region select mode.");
+        Crashlytics.log(Log.DEBUG, logTag,"Region start = "+start+", region end = "+end);
         LayerDrawable layer = (LayerDrawable) getProgressDrawable();
         Drawable drawableFg = (Drawable)layer.findDrawableByLayerId(android.R.id.progress);
         Drawable drawableBg = (Drawable)layer.findDrawableByLayerId(android.R.id.background);
@@ -204,7 +206,7 @@ public class RegionableSeekBar extends SeekBar {
 //        drawableBg.draw(canvas);
  //       drawableFg.draw(canvas);
 
-        Log.d(logTag,"There are "+layer.getNumberOfLayers()+" layer in SeekBar object, forground: "+drawableFg+", background: "+drawableBg);
+        Crashlytics.log(Log.DEBUG, logTag,"There are "+layer.getNumberOfLayers()+" layer in SeekBar object, forground: "+drawableFg+", background: "+drawableBg);
        
         Rect fgBound=drawableFg.copyBounds();
         Rect bgBound=drawableBg.copyBounds();

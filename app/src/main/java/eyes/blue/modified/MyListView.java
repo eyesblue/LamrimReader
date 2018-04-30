@@ -28,6 +28,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.crashlytics.android.Crashlytics;
+
 public class MyListView extends ListView {
 	public final static int TO_START=1;
 	public final static int TO_END=2;
@@ -82,13 +84,13 @@ public class MyListView extends ListView {
 
     		@Override
     		public boolean onScaleBegin(ScaleGestureDetector detector) {
-    			Log.d(getClass().getName(),"Begin scale called factor: "+detector.getScaleFactor());
+    			Crashlytics.log(Log.DEBUG, getClass().getName(),"Begin scale called factor: "+detector.getScaleFactor());
     			return true;
     		}
     		@Override
     		public boolean onScale(ScaleGestureDetector detector) {
     			float size=adapter.getTextSize()*detector.getScaleFactor();
-				Log.d(getClass().getName(),"Get scale rate: "+detector.getScaleFactor()+", current Size: "+adapter.getTextSize()+", setSize: "+adapter.getTextSize()*detector.getScaleFactor());
+				Crashlytics.log(Log.DEBUG, getClass().getName(),"Get scale rate: "+detector.getScaleFactor()+", current Size: "+adapter.getTextSize()+", setSize: "+adapter.getTextSize()*detector.getScaleFactor());
     			if(size<=textSizeMin && adapter.getTextSize()==textSizeMin)
 					return true;
 				else if( size >= textSizeMax && adapter.getTextSize()==textSizeMax)
@@ -98,7 +100,7 @@ public class MyListView extends ListView {
 				else if(size>textSizeMax)size=textSizeMax;
     			adapter.setTextSize(size);
     			adapter.notifyDataSetChanged();
-//    				Log.d(getClass().getName(),"set size after setting: "+adapter.getTextSize());
+//    				Crashlytics.log(Log.DEBUG, getClass().getName(),"set size after setting: "+adapter.getTextSize());
     				return true;
     			}
     		@Override
@@ -125,7 +127,7 @@ public class MyListView extends ListView {
 				e.printStackTrace();
 				return false;
 			}
-//			Log.d(getClass().getName(),"Scale return "+res);
+//			Crashlytics.log(Log.DEBUG, getClass().getName(),"Scale return "+res);
 			return res;
 		}
 		
@@ -135,7 +137,7 @@ public class MyListView extends ListView {
 			e.printStackTrace();
 			return false;
 		}
-//		Log.d(getClass().getName(),"TheoryPageView onTouchEvent return "+res);
+//		Crashlytics.log(Log.DEBUG, getClass().getName(),"TheoryPageView onTouchEvent return "+res);
 		return res;
 	}
 //	public void setOnTouchListener(View.OnTouchListener onTouchListener){this.onTouchListener=onTouchListener;}
@@ -151,12 +153,12 @@ public class MyListView extends ListView {
 		public boolean 	onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY){return true;}
 		@Override
 		public boolean 	onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY){
-//			Log.d(getClass().getName(),"Into onScroll, distance("+distanceX+", "+distanceY+"), scroll point=("+getScrollX()+", "+getScrollY()+")");
+//			Crashlytics.log(Log.DEBUG, getClass().getName(),"Into onScroll, distance("+distanceX+", "+distanceY+"), scroll point=("+getScrollX()+", "+getScrollY()+")");
 			float scrollX=getScrollX()+distanceX;
 //			float scrollY=getScrollY()+distanceY;
 			float rightBoundY=getHeight()-getMeasuredHeight();
 			float rightBoundX=getWidth()-getMeasuredWidth();
-//			Log.d(getClass().getName(),"Layout params: ("+getLayout().getWidth()+", "+getLayout().getHeight()+", content size: ("+getWidth()+", "+getHeight()+"), meansure size: "+getMeasuredWidth()+", "+getMeasuredHeight());
+//			Crashlytics.log(Log.DEBUG, getClass().getName(),"Layout params: ("+getLayout().getWidth()+", "+getLayout().getHeight()+", content size: ("+getWidth()+", "+getHeight()+"), meansure size: "+getMeasuredWidth()+", "+getMeasuredHeight());
 			// reached Up/Left bound.
 			
 			// Restrict the left side can't be over.
@@ -165,13 +167,13 @@ public class MyListView extends ListView {
 			//	if(scrollY<=0)scrollY=0;
 			
 				
-/*			Log.d(getClass().getName(),"textWidth: "+textWidth+", scrollX: "+getScrollX()+", getMeasuredWidth: "+getMeasuredWidth());
+/*			Crashlytics.log(Log.DEBUG, getClass().getName(),"textWidth: "+textWidth+", scrollX: "+getScrollX()+", getMeasuredWidth: "+getMeasuredWidth());
 			// Reached Right/bottom bound.
 			if(textWidth-getMeasuredWidth()-getScrollX()<=0){
-				Log.d(getClass().getName(),"Right bound reached Return false");
+				Crashlytics.log(Log.DEBUG, getClass().getName(),"Right bound reached Return false");
 				return false;
 			}			
-			Log.d(getClass().getName(),"Scroll to ("+scrollX+", "+getScrollY()+")");
+			Crashlytics.log(Log.DEBUG, getClass().getName(),"Scroll to ("+scrollX+", "+getScrollY()+")");
 */			scrollTo((int)scrollX,(int)getScrollY());
 			
 			// Left bound has reached, and still scroll to left
@@ -266,14 +268,14 @@ public class MyListView extends ListView {
 	int[] highlightWordCallArg=null; // This is use for return to user query last call record.
 	public void setHighlightWord(int startPage, int line, int startIndex, int length){
 		highlightWordCallArg=new int[]{startPage, line, startIndex, length};
-		Log.d(getClass().getName(),"Set highlight word at page "+startPage+", Line "+line+", index "+startIndex+", length "+length);
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"Set highlight word at page "+startPage+", Line "+line+", index "+startIndex+", length "+length);
 		int index=lineWordToIndex(startPage, line, startIndex);
-		Log.d(getClass().getName(),"Set highlight word at page "+startPage+", index "+index+", length "+length);
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"Set highlight word at page "+startPage+", index "+index+", length "+length);
 		String sample=getContentStr(startPage,0,TO_END);
 		highlightWord=new int[2][3];
-		Log.d(getClass().getName(),"startIndex+length="+(index+length)+", sample length="+sample.length());
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"startIndex+length="+(index+length)+", sample length="+sample.length());
 		if(index+length<sample.length()){
-			Log.d(getClass().getName(),"The highlight in one page");
+			Crashlytics.log(Log.DEBUG, getClass().getName(),"The highlight in one page");
 			highlightWord[0][0]=startPage;
 			highlightWord[0][1]=index;
 			highlightWord[0][2]=length;
@@ -282,14 +284,14 @@ public class MyListView extends ListView {
 			highlightWord[1][2]=-1;
 		}
 		else{
-			Log.d(getClass().getName(),"The highlight words over second page");
+			Crashlytics.log(Log.DEBUG, getClass().getName(),"The highlight words over second page");
 			highlightWord[0][0]=startPage;
 			highlightWord[0][1]=index;
 			highlightWord[0][2]=sample.length()-index;
 			highlightWord[1][0]=startPage+1;
 			highlightWord[1][1]=0;
 			highlightWord[1][2]=length-(sample.length()-index);
-			Log.d(getClass().getName(),"Set highlight at page,line,word: "+highlightWord[0][0]+", "+highlightWord[0][1]+", "+highlightWord[0][2]+" and "+highlightWord[1][0]+", "+highlightWord[1][1]+", "+highlightWord[1][2]);
+			Crashlytics.log(Log.DEBUG, getClass().getName(),"Set highlight at page,line,word: "+highlightWord[0][0]+", "+highlightWord[0][1]+", "+highlightWord[0][2]+" and "+highlightWord[1][0]+", "+highlightWord[1][1]+", "+highlightWord[1][2]);
 		}
 		refresh();
 	}
@@ -323,7 +325,7 @@ public class MyListView extends ListView {
 	
 	public float setViewToPosition(final int page,int line){
 /*		int firstView=getFirstVisiblePosition()+1;
-		Log.d(getClass().getName(),"First view index: "+firstView);
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"First view index: "+firstView);
 		View v=getChildAt(firstView);
 		TextView tpView=(TextView)v.findViewById(R.id.pageContentView);
 
@@ -339,7 +341,7 @@ public class MyListView extends ListView {
 		float textSize=bounds.height();
 //		float shift=textSize*line/context.getResources().getDisplayMetrics().densityDpi*160f;
 		final float shift=-textSize*line*2.4f;
-		Log.d(getClass().getName(),"Move view to page "+page+" shift "+shift);
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"Move view to page "+page+" shift "+shift);
 		post(new Runnable(){
 			@Override
 			public void run() {
@@ -352,7 +354,7 @@ public class MyListView extends ListView {
 	
 	
 	public int[] searchLast(int startPage, int startLine, int startWord, String str){
-		Log.d(getClass().getName(),"search last "+str+" from page "+startPage+", line "+startLine+", word "+startWord);
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"search last "+str+" from page "+startPage+", line "+startLine+", word "+startWord);
 		int rangePageStart=startPage;
 		int rangePageEnd=startPage;
 		int pageLen[][]=new int[5][2];
@@ -363,7 +365,7 @@ public class MyListView extends ListView {
 		if(startLine<0)startPage--;
 		if(startPage<0)return null;
 		
-		Log.d(getClass().getName(),"Call lineWordToIndex(page="+startPage+", line="+startLine+", word="+startWord+")"); 
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"Call lineWordToIndex(page="+startPage+", line="+startLine+", word="+startWord+")"); 
 		int startIndex=lineWordToIndex(startPage, startLine, startWord);
 		
 		String sample=getContentStr(startPage, startIndex, TO_START);
@@ -378,7 +380,7 @@ public class MyListView extends ListView {
 				sample=getContentStr(rangePageEnd,0,TO_END)+sample;
 				pageLen[pageIndex][0]=rangePageEnd;
 				pageLen[pageIndex][1]=sample.length();
-				Log.d(getClass().getName(),"Add page "+rangePageEnd+" to sample");
+				Crashlytics.log(Log.DEBUG, getClass().getName(),"Add page "+rangePageEnd+" to sample");
 			}
 		
 			int searchResult=searchString(sample,str,TO_START);
@@ -429,7 +431,7 @@ public class MyListView extends ListView {
 		return searchNext(startPage, TheoryData.content.length-1, startLine, startWord, str);
 	}
 	public int[] searchNext(int startPage, int endPage, int startLine, int startWord, String str){
-		Log.d(getClass().getName(),"search next"+str+" from page "+startPage+", line "+startLine+", word "+startWord);
+		Crashlytics.log(Log.DEBUG, getClass().getName(),"search next"+str+" from page "+startPage+", line "+startLine+", word "+startWord);
 		int rangePageStart=startPage;
 		int rangePageEnd=startPage;
 		int pageLen[][]=new int[5][2];
@@ -441,14 +443,14 @@ public class MyListView extends ListView {
 		pageLen[0][1]=sample.length();
 		while(rangePageEnd<endPage){
 			while(sample.length()<str.length()){
-				Log.d(getClass().getName(),"Sample="+sample+"sample length="+sample.length()+", str length="+str.length());
+				Crashlytics.log(Log.DEBUG, getClass().getName(),"Sample="+sample+"sample length="+sample.length()+", str length="+str.length());
 				++pageIndex;
 				if(++rangePageEnd>=TheoryData.content.length)return null;  // The rest length of content not longer then searching string.
 				
 				sample+=getContentStr(rangePageEnd,0,TO_END);
 				pageLen[pageIndex][0]=rangePageEnd;
 				pageLen[pageIndex][1]=sample.length();
-				Log.d(getClass().getName(),"Add page "+rangePageEnd+" to sample");
+				Crashlytics.log(Log.DEBUG, getClass().getName(),"Add page "+rangePageEnd+" to sample");
 			}
 		
 			int searchResult=searchString(sample,str,TO_END);
@@ -590,7 +592,7 @@ public class MyListView extends ListView {
 	 * The direct must be MyListView.TO_START(from 0 to fromIndex) or MyListView.TO_END(from fromIndex to end of content).
 	 * */
 	private static int searchString(String sample, String str, int direct){
-		Log.d("MyListView","The direct is "+((direct==TO_START)?"TO_START":"TO_END"));
+		Crashlytics.log(Log.DEBUG, "MyListView","The direct is "+((direct==TO_START)?"TO_START":"TO_END"));
 		int shift=0;
 		
 		if(direct == TO_START){
@@ -669,7 +671,7 @@ public class MyListView extends ListView {
 		public View getView(int position, View convertView, ViewGroup parent) {
 			View row = convertView;
 			if (row == null) {
-				Log.d(getClass().getName(), "row=null, construct it.");
+				Crashlytics.log(Log.DEBUG, getClass().getName(), "row=null, construct it.");
 				LayoutInflater inflater = ((Activity)context).getLayoutInflater();
 				row = inflater.inflate(R.layout.theory_page_view, parent, false);
 				
@@ -695,7 +697,7 @@ public class MyListView extends ListView {
 				pNum.setTypeface(Util.getFont(context, runtime));
 			}
 
-			// / Log.d(logTag, "row=" + row+", ConvertView="+convertView);
+			// / Crashlytics.log(Log.DEBUG, logTag, "row=" + row+", ConvertView="+convertView);
 			TheoryPageView bContent = (TheoryPageView) row.findViewById(R.id.pageContentView);
 			bContent.setHorizontallyScrolling(true);
 			// bContent.drawPoints(new int[0][0]);

@@ -18,6 +18,7 @@ import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 
@@ -29,7 +30,6 @@ public class MoveFileService extends IntentService {
 	PowerManager powerManager=null;
 	WakeLock wakeLock = null;
 	public static int notificationId=1;	// Always update notification but create new one.
-	private FirebaseAnalytics mFirebaseAnalytics;
 	
 	public MoveFileService() {
 		super("MoveFileService");
@@ -46,8 +46,7 @@ public class MoveFileService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Log.d(getClass().getName(), "Into onHandleIntent of Move File service");
-		mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+		Crashlytics.log(Log.DEBUG,getClass().getName(), "Into onHandleIntent of Move File service");
 		
 		powerManager=(PowerManager) getSystemService(Context.POWER_SERVICE);
 		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());
@@ -71,10 +70,10 @@ public class MoveFileService extends IntentService {
 		int time=(int)(System.currentTimeMillis()-startTime);
 		float spend=(float)time/(float)1000;
 		String readAble=String.format(Locale.ENGLISH, "%.3f%n",spend);
-		Util.fireSelectEvent(mFirebaseAnalytics, logTag, Util.STATISTICS, "MOVE_FILE_TO_SPECIFY_FOLDER_FINISH");
+		Crashlytics.setString("Statistics", "MoveFileToSpecifyFolderFinish");
 		notifyMsg(getString(R.string.msgMoveFileFinish), String.format(getString(R.string.msgMoveFileSummary), ""+counter, readAble));
 
-		Log.d(getClass().getName(),"Move File Service terminate.");
+		Crashlytics.log(Log.DEBUG,getClass().getName(),"Move File Service terminate.");
 	}
 
 /*	public boolean moveAllMediaFileToUserSpecifyDir(File destDir){
@@ -94,7 +93,7 @@ public class MoveFileService extends IntentService {
 
 		int counter=0;
     	final File[] files=srcDir.listFiles();
-    	Log.d(logTag,"There are "+files.length+" files wait for move.");
+    	Crashlytics.log(Log.DEBUG,logTag,"There are "+files.length+" files wait for move.");
 
     	// Check is the destination has the same file, delete source one.
 		for(File src: files){
@@ -125,7 +124,7 @@ public class MoveFileService extends IntentService {
     	File distTemp=new File(to.getAbsolutePath()+getString(R.string.downloadTmpPostfix));
 		FileInputStream fis = null;
 		FileOutputStream fos = null;
-		Log.d(logTag,"Copy "+from.getAbsolutePath()+" to "+to.getAbsolutePath());
+		Crashlytics.log(Log.DEBUG,logTag,"Copy "+from.getAbsolutePath()+" to "+to.getAbsolutePath());
 		try {
 			fis = new FileInputStream(from);
 			fos =new FileOutputStream(distTemp);
